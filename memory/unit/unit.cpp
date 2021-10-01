@@ -1,8 +1,130 @@
 
 
+#include "include/memory.h"
 #include <gtest/gtest.h>
 
-TEST(memory, start) { SUCCEED(); }
+using namespace fastware::memory;
+
+TEST(memory, stack_allocator_create) {
+
+  stack_alloc_create_info_t create_info{nullptr, 1024, alignment_t::b32};
+
+  allocator_t *alloc = fastware::memory::create(&create_info);
+
+  ASSERT_NE(alloc, nullptr);
+
+  destroy(alloc);
+}
+
+TEST(memory, stack_allocator_aligned_alloc) {
+
+  stack_alloc_create_info_t create_info{nullptr, 1024, alignment_t::b32};
+
+  allocator_t *alloc = fastware::memory::create(&create_info);
+
+  ASSERT_NE(alloc, nullptr);
+
+  memblk blk = allocate(alloc, 17);
+
+  ASSERT_EQ(blk.size, 32);
+  ASSERT_TRUE(is_aligned(blk.ptr, alignment_t::b32));
+
+  destroy(alloc);
+}
+
+TEST(memory, stack_allocator_aligned_alloc_all) {
+
+  stack_alloc_create_info_t create_info{nullptr, 1024, alignment_t::b32};
+
+  allocator_t *alloc = fastware::memory::create(&create_info);
+
+  ASSERT_NE(alloc, nullptr);
+
+  for (int i = 0, s = 1024 / 32; i < s; i++) {
+    memblk blk = allocate(alloc, 17);
+
+    ASSERT_EQ(blk.size, 32);
+    ASSERT_TRUE(is_aligned(blk.ptr, alignment_t::b32));
+  }
+
+  memblk blk = allocate(alloc, 17);
+  ASSERT_EQ(blk.size, 0);
+  ASSERT_EQ(blk.ptr, nullptr);
+
+  destroy(alloc);
+}
+
+TEST(memory, stack_allocator_aligned_alloc_all_dealloc_all) {
+
+  stack_alloc_create_info_t create_info{nullptr, 1024, alignment_t::b32};
+
+  allocator_t *alloc = fastware::memory::create(&create_info);
+
+  ASSERT_NE(alloc, nullptr);
+
+  for (int i = 0, s = 1024 / 32; i < s; i++) {
+    memblk blk = allocate(alloc, 17);
+
+    ASSERT_EQ(blk.size, 32);
+    ASSERT_TRUE(is_aligned(blk.ptr, alignment_t::b32));
+  }
+
+  memblk empty_blk1 = allocate(alloc, 17);
+  ASSERT_EQ(empty_blk1.size, 0);
+  ASSERT_EQ(empty_blk1.ptr, nullptr);
+
+  deallocate_all(alloc);
+
+  for (int i = 0, s = 1024 / 32; i < s; i++) {
+    memblk blk = allocate(alloc, 17);
+
+    ASSERT_EQ(blk.size, 32);
+    ASSERT_TRUE(is_aligned(blk.ptr, alignment_t::b32));
+  }
+
+  memblk empty_blk2 = allocate(alloc, 17);
+  ASSERT_EQ(empty_blk2.size, 0);
+  ASSERT_EQ(empty_blk2.ptr, nullptr);
+
+  destroy(alloc);
+}
+
+TEST(memory, stack_allocator_aligned_alloc_dealloc) {
+
+  stack_alloc_create_info_t create_info{nullptr, 1024, alignment_t::b32};
+
+  allocator_t *alloc = fastware::memory::create(&create_info);
+
+  ASSERT_NE(alloc, nullptr);
+
+  memblk blk = allocate(alloc, 17);
+  ASSERT_EQ(blk.size, 32);
+  ASSERT_TRUE(is_aligned(blk.ptr, alignment_t::b32));
+
+  memblk blk2 = allocate(alloc, 17);
+  ASSERT_EQ(blk2.size, 32);
+  ASSERT_TRUE(is_aligned(blk2.ptr, alignment_t::b32));
+
+  memblk blk3 = allocate(alloc, 17);
+  ASSERT_EQ(blk3.size, 32);
+  ASSERT_TRUE(is_aligned(blk3.ptr, alignment_t::b32));
+
+  deallocate(alloc, blk);
+
+  memblk blk4 = allocate(alloc, 17);
+  ASSERT_EQ(blk4.size, 32);
+  ASSERT_TRUE(is_aligned(blk4.ptr, alignment_t::b32));
+  ASSERT_GT(blk4.ptr, blk3.ptr);
+
+  deallocate(alloc, blk4);
+
+  memblk blk5 = allocate(alloc, 17);
+  ASSERT_EQ(blk5.size, 32);
+  ASSERT_TRUE(is_aligned(blk5.ptr, alignment_t::b32));
+  ASSERT_EQ(blk5.ptr, blk4.ptr);
+
+  destroy(alloc);
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
