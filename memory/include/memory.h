@@ -44,7 +44,16 @@ struct stack_alloc_create_info_t {
   alignment_t::value alignment;
 };
 
+struct pool_alloc_create_info_t {
+  allocator_t *parent;
+  uint64_t block_size;
+  alignment_t::value block_alignment;
+  uint64_t block_count;
+};
+
 allocator_t *create(stack_alloc_create_info_t *info);
+
+allocator_t *create(pool_alloc_create_info_t *info);
 
 void destroy(allocator_t *alloc);
 
