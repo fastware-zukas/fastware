@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include "include/memory.h"
+#include <fastware/memory.h>
 
 static void memory_pool_allocator_alloc(benchmark::State &state) {
   const int num_allocs = state.range(0);
