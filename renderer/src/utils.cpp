@@ -353,6 +353,11 @@ void uniform::set_value(uint32_t program_id, uint32_t location, float value) {
 }
 
 void uniform::set_value(uint32_t program_id, uint32_t location,
+                        const glm::vec3 &value) {
+  glProgramUniform3fv(program_id, location, 1, &value[0]);
+}
+
+void uniform::set_value(uint32_t program_id, uint32_t location,
                         const glm::mat4 &value) {
   glProgramUniformMatrix4fv(program_id, location, 1, GL_FALSE, &value[0][0]);
 }

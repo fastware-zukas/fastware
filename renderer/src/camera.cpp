@@ -1,5 +1,6 @@
 #include <fastware/camera.h>
 
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 namespace fastware {
@@ -34,10 +35,10 @@ camera move_vertically(camera c, float_t rate) {
 }
 
 camera rotate_horizontally(camera c, float_t rate) {
-  const glm::vec3 nd = glm::rotate(c.dir, rate / 2.f, c.up);
-  const glm::vec3 np = glm::rotate(c.pos, -rate / 2.f, c.up);
 
-  return {np, nd, c.up};
+  const auto dir = glm::rotate(c.dir, rate, c.up);
+
+  return {c.pos, dir, c.up};
 }
 
 camera pan_horizontal(camera c, float_t angle) {

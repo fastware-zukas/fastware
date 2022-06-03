@@ -21,6 +21,7 @@ include_directories(../common/include)
 include_directories(../memory/include)
 include_directories(../logger/include)
 include_directories(../renderer/include)
+include_directories(../window/include)
 
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -31,6 +32,7 @@ target_link_libraries(
     memory
     renderer
     logger
+    window
     ${GL_LIBS}
 )
 

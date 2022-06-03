@@ -61,6 +61,8 @@ void set_value(uint32_t program_id, uint32_t location, uint32_t value);
 
 void set_value(uint32_t program_id, uint32_t location, float value);
 
+void set_value(uint32_t program_id, uint32_t location, const glm::vec3 &value);
+
 void set_value(uint32_t program_id, uint32_t location, const glm::mat4 &value);
 
 } // namespace uniform

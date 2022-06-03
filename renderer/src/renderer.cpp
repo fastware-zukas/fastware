@@ -12,7 +12,7 @@ namespace fastware {
 namespace renderer {
 
 void begin_frame() {
-  constexpr float clear[]{1.f, 1.f, 1.f, 1.0f};
+  constexpr float clear[]{0.025f, 0.025f, 0.025f, 1.f};
   glClearBufferfv(GL_COLOR, 0, clear);
   glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.f, 1);
 }

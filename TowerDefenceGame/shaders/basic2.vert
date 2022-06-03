@@ -14,13 +14,15 @@ out gl_PerVertex {
 };
 
 out block {
-  layout(location = 1) vec3 vNorm;
-  layout(location = 2) vec2 vUV;
+  layout(location = 1) smooth vec3 vFragPos;
+  layout(location = 2) vec3 vNorm;
+  layout(location = 3) vec2 vUV;
 }
 Out;
 
 void main() {
   gl_Position = uPV * vModel * vec4(vPos, 1.0);
+  Out.vFragPos = vec3(vModel * vec4(vPos, 1.0));
   Out.vNorm = vNorm;
   Out.vUV = vUV;
 }

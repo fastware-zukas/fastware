@@ -41,8 +41,10 @@ add_subdirectory(3rd/SDL2)
 add_subdirectory(3rd/glm)
 add_subdirectory(common)
 add_subdirectory(memory)
-add_subdirectory(renderer)
 add_subdirectory(logger)
+add_subdirectory(renderer)
+add_subdirectory(window)
+
 
 SET(GL_LIBS ${OPENGL_LIBRARY} GLEW SDL2)
 

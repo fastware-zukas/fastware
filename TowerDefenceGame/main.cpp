@@ -1,5 +1,5 @@
-#include "window/window.h"
-#include "window/window_system.h"
+#include <fastware/window.h>
+#include <fastware/window_system.h>
 
 #include <fastware/clock.h>
 #include <fastware/file.h>
@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <algorithm>
+#include <cstdint>
 #include <random>
 
 #include <fastware/camera.h>
@@ -22,6 +23,8 @@
 #include <fastware/utils.h>
 
 constexpr float PI{3.14159265358979323846f};
+
+constexpr float FRAME{1e+9 / 60};
 
 namespace sphere {
 
@@ -123,7 +126,7 @@ void create_instancing_transforms(glm::mat4 *matrixes, float *transform_speeds,
   std::random_device
       rd; // Will be used to obtain a seed for the random number engine
   std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
-  std::uniform_real_distribution<float> dis(-100.f, 100.f);
+  std::uniform_real_distribution<float> dis(-4000.f, 4000.f);
   std::uniform_real_distribution<float> dis2(-2.f, 2.f);
   std::uniform_real_distribution<float> dis3(3.f, 15.f);
 
@@ -173,21 +176,237 @@ struct Matrixes {
   glm::mat4 projection;
 };
 
+struct control_block {
+  fastware::camera cam;
+  uint32_t main_window_id;
+  int mode;
+};
+
+void process_events(fastware::event_t *events, int32_t count,
+                    fastware::key_state_t states, void *context) {
+
+  control_block *control = static_cast<control_block *>(context);
+
+  constexpr void *event_handles[]{
+      [fastware::value(fastware::event_type_t::WINDOW_SHOWN)] =
+          &&WINDOW_SHOWN_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_HIDDEN)] =
+          &&WINDOW_HIDDEN_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_EXPOSED)] =
+          &&WINDOW_EXPOSED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_MOVED)] =
+          &&WINDOW_MOVED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_RESIZED)] =
+          &&WINDOW_RESIZED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_SIZE_CHANGED)] =
+          &&WINDOW_SIZE_CHANGED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_MINIMIZED)] =
+          &&WINDOW_MINIMIZED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_MAXIMIZED)] =
+          &&WINDOW_MAXIMIZED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_RESTORED)] =
+          &&WINDOW_RESTORED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_ENTER)] =
+          &&WINDOW_ENTER_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_LEAVE)] =
+          &&WINDOW_LEAVE_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_FOCUS_GAINED)] =
+          &&WINDOW_FOCUS_GAINED_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_FOCUS_LOST)] =
+          &&WINDOW_FOCUS_LOST_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_CLOSE)] =
+          &&WINDOW_CLOSE_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_TAKE_FOCUS)] =
+          &&WINDOW_TAKE_FOCUS_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_HIT_TEST)] =
+          &&WINDOW_HIT_TEST_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_KEY)] = &&WINDOW_KEY_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_MOUSE_MOVE)] =
+          &&WINDOW_MOUSE_MOVE_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_MOUSE_WHEEL)] =
+          &&WINDOW_MOUSE_WHEEL_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_MOUSE_BUTTON)] =
+          &&WINDOW_MOUSE_BUTTON_LBL,
+      [fastware::value(fastware::event_type_t::WINDOW_TEXT_EDIT)] =
+          &&WINDOW_TEXT_EDIT_LBL,
+      [fastware::value(fastware::event_type_t::END_STREAM)] = &&END_STREAM_LBL,
+  };
+
+  const fastware::event_t *eve = nullptr;
+  const auto next = [&]() {
+    eve = events;
+    auto type = eve->type;
+    events++;
+    return event_handles[value(type)];
+  };
+  goto *next();
+
+WINDOW_SHOWN_LBL:
+  goto *next();
+
+WINDOW_HIDDEN_LBL:
+  goto *next();
+
+WINDOW_EXPOSED_LBL:
+  goto *next();
+
+WINDOW_MOVED_LBL:
+  goto *next();
+
+WINDOW_RESIZED_LBL:
+  goto *next();
+
+WINDOW_SIZE_CHANGED_LBL:
+  goto *next();
+
+WINDOW_MINIMIZED_LBL:
+  goto *next();
+
+WINDOW_MAXIMIZED_LBL:
+  goto *next();
+
+WINDOW_RESTORED_LBL:
+  goto *next();
+
+WINDOW_ENTER_LBL:
+  goto *next();
+
+WINDOW_LEAVE_LBL:
+  goto *next();
+
+WINDOW_FOCUS_GAINED_LBL:
+  goto *next();
+
+WINDOW_FOCUS_LOST_LBL:
+  goto *next();
+
+WINDOW_CLOSE_LBL:
+  fastware::logger::log("Window closing %u", eve->window_id);
+  if (control->main_window_id == eve->window_id) {
+    fastware::destroy_window(control->main_window_id);
+    control->main_window_id = 0;
+  }
+
+  goto *next();
+
+WINDOW_TAKE_FOCUS_LBL:
+  goto *next();
+
+WINDOW_HIT_TEST_LBL:
+  goto *next();
+
+WINDOW_KEY_LBL:
+  if (eve->key.action == fastware::input::action::RELEASE) {
+    switch (eve->key.keycode) {
+    case fastware::input::key::KEY_KP_PLUS: {
+      fastware::clock::set_game_speed(fastware::clock::game_speed() + 1);
+      break;
+    }
+    case fastware::input::key::KEY_KP_MINUS: {
+      fastware::clock::set_game_speed(fastware::clock::game_speed() - 1);
+      break;
+    }
+    case fastware::input::key::KEY_0: {
+      control->mode = 0;
+      break;
+    }
+    case fastware::input::key::KEY_1: {
+      control->mode = 1;
+      break;
+    }
+    case fastware::input::key::KEY_2: {
+      control->mode = 2;
+      break;
+    }
+    case fastware::input::key::KEY_3: {
+      control->mode = 3;
+      break;
+    }
+    case fastware::input::key::KEY_ESCAPE: {
+      fastware::destroy_window(control->main_window_id);
+      control->main_window_id = 0;
+      break;
+    }
+    default:
+      break;
+    }
+  }
+  goto *next();
+
+WINDOW_MOUSE_MOVE_LBL:
+  goto *next();
+
+WINDOW_MOUSE_WHEEL_LBL:
+  goto *next();
+
+WINDOW_MOUSE_BUTTON_LBL:
+  goto *next();
+
+WINDOW_TEXT_EDIT_LBL:
+  goto *next();
+
+END_STREAM_LBL:
+
+  float duration = float(fastware::clock::system_time_delta()) / FRAME;
+  fastware::logger::log(
+      "Frame duration ratio: %f, Expected time: %f, Frame time: %ld", duration,
+      FRAME, fastware::clock::system_time_delta());
+
+  if (states.current_key_states[fastware::value(fastware::input::key::KEY_Q)]) {
+    control->cam =
+        fastware::pan_horizontal(control->cam, glm::radians(1.f) * duration);
+  }
+
+  if (states.current_key_states[fastware::value(fastware::input::key::KEY_E)]) {
+    control->cam =
+        fastware::pan_horizontal(control->cam, glm::radians(-1.f) * duration);
+  }
+
+  if (states.current_key_states[fastware::value(fastware::input::key::KEY_W)]) {
+    control->cam = fastware::move_parallel(control->cam, 6.f * duration);
+  }
+
+  if (states.current_key_states[fastware::value(fastware::input::key::KEY_S)]) {
+    control->cam = fastware::move_parallel(control->cam, -6.f * duration);
+  }
+
+  if (states.current_key_states[fastware::value(fastware::input::key::KEY_A)]) {
+    control->cam = fastware::move_perpendicular(control->cam, -6.f * duration);
+  }
+
+  if (states.current_key_states[fastware::value(fastware::input::key::KEY_D)]) {
+    control->cam = fastware::move_perpendicular(control->cam, 6.f * duration);
+  }
+
+  if (states.current_key_states[fastware::value(
+          fastware::input::key::KEY_PAGEUP)]) {
+    control->cam = fastware::move_vertically(control->cam, 4.f * duration);
+  }
+
+  if (states.current_key_states[fastware::value(
+          fastware::input::key::KEY_PAGEDOWN)]) {
+    control->cam = fastware::move_vertically(control->cam, -4.f * duration);
+  }
+
+  return;
+}
+
 int main() {
 
   using namespace fastware;
 
   SystemAlloc alloc;
 
-  int32_t win_width = 1600;
-  int32_t win_height = 1200;
-
   logger::init_logger(alloc.root_alloc, 8 * 1024 * 64);
 
-  window_system ws(alloc.root_alloc);
+  control_block control;
 
-  window_create_info window_create_info{"testing", win_width, win_height};
-  window w(&window_create_info);
+  window_system ws(alloc.root_alloc, process_events, &control);
+  ws.frame_limiter(toggle::ON);
+
+  window_create_info window_create_info{"Fastware", 0, 0};
+  window_info info;
+  control.main_window_id = create_window(&window_create_info, &info);
 
   debug_init();
 
@@ -222,8 +441,8 @@ int main() {
   memory::deallocate(alloc.root_alloc, frag_blk);
   memory::deallocate(alloc.root_alloc, vert_blk);
 
-  constexpr uint32_t instance_count = 50;
-  constexpr uint32_t units = 72;
+  constexpr uint32_t instance_count = 75000;
+  constexpr uint32_t units = 24;
   constexpr uint32_t vertex_count = sphere::vertex_count(units);
   constexpr uint32_t index_count = sphere::index_count(units);
   struct m_vert {
@@ -235,6 +454,9 @@ int main() {
   struct m_idx {
     uint32_t indexes[index_count];
   } idx_data;
+
+  uint64_t vc = uint64_t(instance_count) * uint64_t(vertex_count);
+  uint64_t tc = uint64_t(instance_count) * uint64_t(index_count) / 3;
 
   sphere::model_data_pos_normal_uv vert_tmp{
       vert_data.positions, vert_data.normals, vert_data.uvs, 0};
@@ -294,13 +516,16 @@ int main() {
   e.render_type = entity::INDEX_INSTANCED;
   e.instance_count = instance_count;
 
-  camera cam{glm::vec3(50.0f, 50.0f, 300.0f), glm::vec3(0.0f, -0.45f, -1.0f),
+  control.cam =
+      camera{glm::vec3(50.0f, 50.0f, 300.0f), glm::vec3(0.0f, -0.45f, -1.0f),
              glm::vec3(0.0f, 1.0f, 0.0f)};
 
-  Matrixes m{camera_view(cam),
-             glm::perspective(glm::radians(45.f),
-                              float(win_width) / float(win_height), 0.01f,
-                              1000.0f)};
+  control.mode = 0;
+
+  Matrixes m{camera_view(control.cam),
+             glm::perspective(glm::radians(60.f),
+                              float(info.width) / float(info.height), 0.001f,
+                              10000.0f)};
 
   buffer_update_info_t bui_model[]{
       {buffers[2], 0, instance_count * sizeof(glm::mat4), model}};
@@ -335,6 +560,11 @@ int main() {
   texture::bind(0, 1, &texture_id);
   sampler::bind(0, 1, &sampler_id);
 
+  uniform::set_value(e.program_id, 12, glm::vec3(0, 0, 0));
+  uniform::set_value(e.program_id, 13, glm::vec3(255, 255, 200));
+  uniform::set_value(e.program_id, 14, 1500.f);
+  uniform::set_value(e.program_id, 15, control.mode);
+
   renderer_change state[]{{{DEPTH_TEST, toggle::ON}},
                           {{CULL_FACE, toggle::ON}},
                           {{DEPTH_TEST_FUNC, LESS}},
@@ -348,10 +578,10 @@ int main() {
   logger::flush();
   clock::update();
 
-  while (!ws.closing()) {
+  while (control.main_window_id != 0) {
     ws.poll();
 
-    m.view = camera_view(cam);
+    m.view = camera_view(control.cam);
 
     glm::mat4 PV = m.projection * m.view;
 
@@ -364,6 +594,7 @@ int main() {
     renderer::begin_frame();
 
     uniform::set_value(e.program_id, 7, PV);
+    uniform::set_value(e.program_id, 15, control.mode);
 
     buffer::update(&bui_model[0], 1);
 
@@ -371,15 +602,17 @@ int main() {
 
     renderer::end_frame();
 
-    w.swap_buffers();
-
-    logger::log("Frame end");
+    swap_buffers(&control.main_window_id, 1);
 
     logger::flush();
     clock::update();
   }
 
   logger::log("Program end");
+  logger::log(
+      "Vertex count: %u, Index count: %u, Triangles per instance: %u, "
+      "Instance count: %u, Vertex rendered: %lu, Triangles rendered: %lu",
+      vertex_count, index_count, index_count / 3, instance_count, vc, tc);
 
   logger::flush();
   logger::deinit_logger();
