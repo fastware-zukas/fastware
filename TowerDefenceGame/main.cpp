@@ -561,8 +561,8 @@ int main() {
   sampler::bind(0, 1, &sampler_id);
 
   uniform::set_value(e.program_id, 12, glm::vec3(0, 0, 0));
-  uniform::set_value(e.program_id, 13, glm::vec3(255, 255, 200));
-  uniform::set_value(e.program_id, 14, 1500.f);
+  uniform::set_value(e.program_id, 13, glm::vec3(255, 255, 175));
+  uniform::set_value(e.program_id, 14, 1200.f);
   uniform::set_value(e.program_id, 15, control.mode);
 
   renderer_change state[]{{{DEPTH_TEST, toggle::ON}},

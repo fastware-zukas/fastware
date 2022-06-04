@@ -17,17 +17,15 @@ layout(location = 0, index = 0) out vec4 fColour;
 
 void main(void) {
 
-  vec3 norm = normalize(In.vNorm);
-  vec3 lightDir = (lightPosition - In.vFragPos);
-  vec3 lightDirNorm = normalize(lightDir);
-
-  float dist = length(lightDir);
-  float diff = clamp(dot(norm, lightDirNorm), 0, 1);
-
   float ambientStrength = 0.05;
   vec3 ambient = ambientStrength * normalize(lightColour);
 
-  vec3 diffuse = texture(textureSampler, In.vUV).rgb;
+  vec3 norm = normalize(In.vNorm);
+  vec3 lightDir = normalize(lightPosition - In.vFragPos);
+  float diff = max(dot(norm, lightDir), 0.0);
+  vec3 diffuse = diff * texture(textureSampler, In.vUV).rgb;
+
+  float dist = length(lightPosition - In.vFragPos);
 
   vec3 result =
       ambient + diffuse * lightColour * diff * lightIntensity / (dist * dist);
@@ -37,7 +35,7 @@ void main(void) {
   } else if (mode == 1) {
     fColour = vec4(diffuse, 1.0);
   } else if (mode == 2) {
-    fColour = vec4(lightDirNorm, 1.0);
+    fColour = vec4(lightDir, 1.0);
   } else {
     fColour = vec4(lightColour * lightIntensity / (dist * dist), 1.0);
   }

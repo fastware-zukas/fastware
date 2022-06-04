@@ -23,6 +23,6 @@ Out;
 void main() {
   gl_Position = uPV * vModel * vec4(vPos, 1.0);
   Out.vFragPos = vec3(vModel * vec4(vPos, 1.0));
-  Out.vNorm = vNorm;
+  Out.vNorm = mat3(transpose(inverse(vModel))) * vNorm;
   Out.vUV = vUV;
 }
