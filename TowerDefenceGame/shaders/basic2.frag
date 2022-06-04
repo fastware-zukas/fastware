@@ -33,7 +33,7 @@ void main(void) {
   if (mode <= 0) {
     fColour = vec4(result, 1.0);
   } else if (mode == 1) {
-    fColour = vec4(diffuse, 1.0);
+    fColour = vec4(diffuse * lightIntensity / dist, 1.0);
   } else if (mode == 2) {
     fColour = vec4(lightDir, 1.0);
   } else {
