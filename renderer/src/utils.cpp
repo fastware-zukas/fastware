@@ -12,35 +12,35 @@
 
 namespace fastware {
 
-constexpr GLenum select(buffer_target target) {
+constexpr GLenum select(buffer_target_e target) {
   switch (target) {
-  case buffer_target::ARRAY_BUFFER:
+  case buffer_target_e::ARRAY_BUFFER:
     return GL_ARRAY_BUFFER;
-  case buffer_target::ATOMIC_COUNTER_BUFFER:
+  case buffer_target_e::ATOMIC_COUNTER_BUFFER:
     return GL_ATOMIC_COUNTER_BUFFER;
-  case buffer_target::COPY_READ_BUFFER:
+  case buffer_target_e::COPY_READ_BUFFER:
     return GL_COPY_READ_BUFFER;
-  case buffer_target::COPY_WRITE_BUFFER:
+  case buffer_target_e::COPY_WRITE_BUFFER:
     return GL_COPY_WRITE_BUFFER;
-  case buffer_target::DISPATCH_INDIRECT_BUFFER:
+  case buffer_target_e::DISPATCH_INDIRECT_BUFFER:
     return GL_DISPATCH_INDIRECT_BUFFER;
-  case buffer_target::DRAW_INDIRECT_BUFFER:
+  case buffer_target_e::DRAW_INDIRECT_BUFFER:
     return GL_DRAW_INDIRECT_BUFFER;
-  case buffer_target::ELEMENT_ARRAY_BUFFER:
+  case buffer_target_e::ELEMENT_ARRAY_BUFFER:
     return GL_ELEMENT_ARRAY_BUFFER;
-  case buffer_target::PIXEL_PACK_BUFFER:
+  case buffer_target_e::PIXEL_PACK_BUFFER:
     return GL_PIXEL_PACK_BUFFER;
-  case buffer_target::PIXEL_UNPACK_BUFFER:
+  case buffer_target_e::PIXEL_UNPACK_BUFFER:
     return GL_PIXEL_UNPACK_BUFFER;
-  case buffer_target::QUERY_BUFFER:
+  case buffer_target_e::QUERY_BUFFER:
     return GL_QUERY_BUFFER;
-  case buffer_target::SHADER_STORAGE_BUFFER:
+  case buffer_target_e::SHADER_STORAGE_BUFFER:
     return GL_SHADER_STORAGE_BUFFER;
-  case buffer_target::TEXTURE_BUFFER:
+  case buffer_target_e::TEXTURE_BUFFER:
     return GL_TEXTURE_BUFFER;
-  case buffer_target::TRANSFORM_FEEDBACK_BUFFER:
+  case buffer_target_e::TRANSFORM_FEEDBACK_BUFFER:
     return GL_TRANSFORM_FEEDBACK_BUFFER;
-  case buffer_target::UNIFORM_BUFFER:
+  case buffer_target_e::UNIFORM_BUFFER:
     return GL_UNIFORM_BUFFER;
   }
   return 0;
@@ -119,7 +119,8 @@ void buffer::create(const buffer_create_info_t *infos, uint32_t count,
                     uint32_t *buffer_ids) {
   glCreateBuffers(static_cast<GLsizei>(count), buffer_ids);
   for (int32_t i = 0, c = static_cast<int32_t>(count); i < c; ++i) {
-    GLCALL(glNamedBufferData, buffer_ids[i],
+    glBindBuffer(select(infos[i].target), buffer_ids[i]);
+    GLCALL(glBufferData, select(infos[i].target),
            static_cast<GLsizei>(infos[i].size), infos[i].data,
            select(infos[i].type));
   }
@@ -337,6 +338,11 @@ void uniform::resolve_block(uint32_t prog_id, const char *uniformBlockName,
 
 void uniform::bind_buffer(uint32_t binding_point, uint32_t buffer_id) {
   glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, buffer_id);
+}
+
+void uniform::set_sampler_value(uint32_t program_id, uint32_t location,
+                                int32_t value) {
+  glProgramUniform1i(program_id, location, value);
 }
 
 void uniform::set_value(uint32_t program_id, uint32_t location, int32_t value) {

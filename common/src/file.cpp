@@ -27,3 +27,9 @@ size_t File::read(char *buffer, size_t read_size) {
   size_t res = fread(buffer, 1, read_size, file_handle_);
   return res;
 }
+
+size_t File::read(fastware::byte *buffer, size_t read_size) {
+  assert(size_ >= read_size);
+  size_t res = fread(buffer, 1, read_size, file_handle_);
+  return res;
+}

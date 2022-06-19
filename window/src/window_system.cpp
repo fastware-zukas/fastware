@@ -11,7 +11,7 @@
 
 namespace fastware {
 
-constexpr int32_t max_events{128};
+constexpr int32_t max_events{64};
 
 struct internal_data_t {
   event_t events[max_events];

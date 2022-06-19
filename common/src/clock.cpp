@@ -35,6 +35,8 @@ int64_t system_time_elapsed() {
   return duration(clock_data.current_time - clock_data.start_time).count();
 }
 
+int64_t system_time() { return timer::now().time_since_epoch().count(); }
+
 void set_game_speed(int64_t speed) { clock_data.game_speed = speed; }
 
 int64_t game_speed() { return clock_data.game_speed; }

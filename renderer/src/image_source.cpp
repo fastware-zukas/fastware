@@ -5,12 +5,13 @@
 
 namespace fastware {
 
-image_data load(const char *filename) {
+image_data load(const byte *raw_bytes, uint32_t length) {
 
   int32_t width = 0;
   int32_t height = 0;
   int32_t components = 0;
-  void *data = stbi_load(filename, &width, &height, &components, 0);
+  byte *data =
+      stbi_load_from_memory(raw_bytes, length, &width, &height, &components, 0);
 
   graphics::texture_format format;
   switch (components) {

@@ -12,4 +12,8 @@ template <typename T, typename Ret> constexpr Ret size_of() {
   return sizeof(T);
 }
 
+#define CAT_(a, b) a##b
+#define CAT(a, b) CAT_(a, b)
+#define VARNAME(name) CAT(name, __LINE__)
+
 #endif // fastware_DEF_H

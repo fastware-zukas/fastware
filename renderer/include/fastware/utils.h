@@ -55,6 +55,8 @@ void resolve_block(uint32_t prog_id, const char *uniformBlockName,
 
 void bind_buffer(uint32_t binding_point, uint32_t buffer_id);
 
+void set_sampler_value(uint32_t program_id, uint32_t location, int32_t value);
+
 void set_value(uint32_t program_id, uint32_t location, int32_t value);
 
 void set_value(uint32_t program_id, uint32_t location, uint32_t value);

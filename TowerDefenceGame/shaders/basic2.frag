@@ -28,7 +28,7 @@ void main(void) {
   float dist = length(lightPosition - In.vFragPos);
 
   vec3 result =
-      ambient + diffuse * lightColour * diff * lightIntensity / (dist * dist);
+      ambient + diffuse * lightColour * lightIntensity / (dist * dist);
 
   if (mode <= 0) {
     fColour = vec4(result, 1.0);

@@ -19,7 +19,7 @@ enum class shader_type {
   COMPUTE
 };
 
-enum class buffer_target {
+enum class buffer_target_e {
   ARRAY_BUFFER,              // Vertex attributes
   ATOMIC_COUNTER_BUFFER,     // Atomic counter storage
   COPY_READ_BUFFER,          // Buffer copy source
@@ -149,6 +149,7 @@ struct vertex_item_description_t {
 };
 
 struct buffer_create_info_t {
+  buffer_target_e target{buffer_target_e::ARRAY_BUFFER};
   buffer_type_e type{buffer_type_e::NONE};
   uint32_t size{0};
   const void *data{nullptr};

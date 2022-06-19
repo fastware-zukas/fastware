@@ -7,6 +7,10 @@
 namespace fastware {
 namespace memory {
 
+constexpr size_t Kb{1024};
+constexpr size_t Mb{1024 * Kb};
+constexpr size_t Gb{1024 * Mb};
+
 struct alignment_t {
   enum value : uint64_t {
     b4 = 4,
@@ -17,6 +21,7 @@ struct alignment_t {
     b128 = 128,
     b256 = 256,
     b512 = 512,
+    b1k = 1024,
     b4k = 4196
   };
   static constexpr uint64_t mask(value val) { return val - 1; }
@@ -44,7 +49,11 @@ constexpr bool is_aligned(const void *__restrict ptr,
 struct allocator_t;
 
 struct memblk {
-  void *ptr;
+  union {
+    void *ptr;
+    uintptr_t addr;
+  };
+
   uint64_t size;
 };
 

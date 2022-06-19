@@ -6,7 +6,8 @@
 
 namespace fastware {
 
-enum class toggle { OFF = 0, ON = 1 };
+using byte = u_char;
+enum class toggle { OFF = 0, ON = 1, SELECTIVE = -1 };
 
 namespace input {
 

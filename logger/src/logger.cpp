@@ -1,10 +1,12 @@
 #include <fastware/logger.h>
 
+#include <fastware/math.h>
 #include <fastware/memory.h>
 
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <ctime>
 #include <stdarg.h>
 
 #include <atomic>
@@ -45,10 +47,10 @@ void fastware::logger::deinit_logger() {
 
 void fastware::logger::log(const char *__restrict format, ...) {
 
-  // Start with 6 chars + 1 white space = 7 bytes '[INFO] '
-  // End with new line char = 2 byte '\n\n'
-  // Total added size = 10 bytes
-  constexpr int32_t meta_size = 10 + 20;
+  // Start with 6 chars + 22 timestamp + 1 char space = 29 chars (max)
+  // '[INFO][timestamp] '
+  // End with new line char = 2 byte '\n\n' Total added size = 31 bytes
+  constexpr int32_t meta_size = 31;
   constexpr int32_t buffer_size = 4196;
   char buffer[buffer_size]{};
   va_list args;
@@ -73,7 +75,7 @@ void fastware::logger::log(const char *__restrict format, ...) {
   auto now =
       std::chrono::high_resolution_clock::now().time_since_epoch().count();
 
-  snprintf(buffer_ptr, total_buffer_length + 2, "[INFO][%lu] %.*s\n\n", now,
+  snprintf(buffer_ptr, total_buffer_length, "[INFO][%lu] %.*s\n\n", now,
            buffer_length, buffer);
   atomic_fetch_sub_explicit(&(log_buffer.writers), 1,
                             std::memory_order_acq_rel);

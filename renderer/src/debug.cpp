@@ -4,12 +4,46 @@
 
 #include <fastware/logger.h>
 
+const char *type_select(GLenum type) {
+  switch (type) {
+  case GL_DEBUG_TYPE_ERROR:
+    return "ERROR";
+  case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+    return "DEPRECATED_BEHAVIOR";
+
+  case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+    return "UNDEFINED_BEHAVIOR";
+
+  case GL_DEBUG_TYPE_PORTABILITY:
+    return "PORTABILITY";
+
+  case GL_DEBUG_TYPE_PERFORMANCE:
+    return "PERFORMANCE";
+
+  case GL_DEBUG_TYPE_OTHER:
+    return "OTHER";
+  }
+
+  return "UNKNOWN";
+}
+
+const char *severity_select(GLenum severity) {
+  switch (severity) {
+  case GL_DEBUG_SEVERITY_LOW:
+    return "LOW";
+  case GL_DEBUG_SEVERITY_MEDIUM:
+    return "MEDIUM";
+  case GL_DEBUG_SEVERITY_HIGH:
+    return "HIGH";
+  }
+  return "UNKNOWN";
+}
+
 void GLAPIENTRY bebug_callback(GLenum source, GLenum type, GLuint id,
-                               GLenum severity, GLsizei length,
-                               const GLchar *message, const void *userParam) {
-  fastware::logger::log("[GLLOG] %s type = 0x%x, severity = 0x%x, message = %s",
-                        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-                        type, severity, message);
+                               GLenum severity, GLsizei, const GLchar *message,
+                               const void *) {
+  fastware::logger::log("[GL DEBUG] type = %s severity = %s, message = %s",
+                        type_select(type), severity_select(severity), message);
   fastware::logger::flush();
 }
 

@@ -4,7 +4,6 @@ project(TowerDefenceGame VERSION 0.1.0)
 
 file(GLOB SOURCES
     "*.cpp"
-    "window/*.cpp"
 )
 
 file(GLOB SHADERS
@@ -20,6 +19,7 @@ include_directories(../)
 include_directories(../common/include)
 include_directories(../memory/include)
 include_directories(../logger/include)
+include_directories(../utils/include)
 include_directories(../renderer/include)
 include_directories(../window/include)
 
@@ -30,8 +30,9 @@ target_link_libraries(
     ${PROJECT_NAME}
     common
     memory
-    renderer
     logger
+    utils
+    renderer
     window
     ${GL_LIBS}
 )
