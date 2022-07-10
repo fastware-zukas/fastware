@@ -10,13 +10,27 @@
 
 namespace fastware {
 
-enum class shader_type {
+enum class shader_type_e {
   VERTEX,
   FRAGMENT,
   GEOMETRY,
   TESS_CONTROL,
   TESS_EVALUATION,
   COMPUTE
+};
+
+enum class primitive_type_e {
+  POINTS,
+  LINES,
+  LINE_LOOP,
+  LINE_STRIP,
+  TRIANGLES,
+  TRIANGLE_STRIP,
+  TRIANGLE_FAN,
+  LINES_ADJACENCY,
+  LINE_STRIP_ADJACENCY,
+  TRIANGLES_ADJACENCY,
+  TRIANGLE_STRIP_ADJACENCY
 };
 
 enum class buffer_target_e {
@@ -88,7 +102,7 @@ struct shader_source_t {
     const uint8_t *spir_v_source;
   };
   uint32_t length;
-  shader_type type;
+  shader_type_e type;
 };
 
 enum class data_type_e {
@@ -131,8 +145,8 @@ struct vertex_buffer_section_definition_t {
 struct vertex_buffer_definition_t {
   uint32_t buffer_id;
   data_rate_e data_rate;
-  int32_t data_element_count;
-  int32_t section_definition_count;
+  uint32_t data_element_count;
+  uint32_t section_definition_count;
   const vertex_buffer_section_definition_t *section_definitions;
 };
 

@@ -26,12 +26,15 @@ void destroy(const uint32_t *varray_ids, uint32_t count);
 
 namespace present {
 
-void render(uint32_t varray_id, uint32_t vertex_count);
+void render(uint32_t varray_id, uint32_t offset, uint32_t vertex_count,
+            primitive_type_e type);
 
-void render_indexed(uint32_t varray_id, uint32_t index_count);
+void render_indexed(uint32_t varray_id, uint32_t offset, uint32_t index_count,
+                    primitive_type_e type);
 
-void render_indexed_instanced(uint32_t varray_id, uint32_t index_count,
-                              uint32_t instance_count);
+void render_indexed_instanced(uint32_t varray_id, uint32_t offset,
+                              uint32_t index_count, uint32_t instance_count,
+                              primitive_type_e type);
 } // namespace present
 
 namespace program {

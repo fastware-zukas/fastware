@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <random>
 
+#include <fastware/bounding.h>
 #include <fastware/camera.h>
 #include <fastware/data_types.h>
 #include <fastware/debug.h>
@@ -69,7 +70,8 @@ int main() {
                                              glm::vec3(0.0f, -0.45f, -1.0f),
                                              glm::vec3(0.0f, 1.0f, 0.0f)},
                                .main_window_id = 0,
-                               .mode = 0};
+                               .mode = 0,
+                               .show_bounding_box = false};
 
   window_system ws(alloc.root_alloc, setup::process_events, &control);
   ws.frame_limiter(toggle::SELECTIVE);
@@ -81,8 +83,8 @@ int main() {
   debug_init();
 
   setup::shader_source shaders[]{
-      {.filename = "shaders/basic2.vert", .type = shader_type::VERTEX},
-      {.filename = "shaders/basic2.frag", .type = shader_type::FRAGMENT}};
+      {.filename = "shaders/basic2.vert", .type = shader_type_e::VERTEX},
+      {.filename = "shaders/basic2.frag", .type = shader_type_e::FRAGMENT}};
 
   const uint32_t prog_id = setup::create_program(alloc.root_alloc, shaders, 2);
 
@@ -154,8 +156,10 @@ int main() {
 
   entity e{.program_id = prog_id,
            .varray_id = vert_id,
+           .offset = 0,
            .count = index_count,
            .instance_count = instance_count,
+           .primitive_type = primitive_type_e::TRIANGLES,
            .render_type = entity::INDEX_INSTANCED};
 
   buffer_update_info_t gpu_matrix_buffer_update[]{
@@ -168,6 +172,49 @@ int main() {
                          glm::mat4(1.f));
   setup::create_transforms(prep_mat_data->models, instance_count);
   setup::create_speeds(prep_mat_data->speeds, instance_count);
+
+  setup::shader_source bounding_shaders[]{
+      {.filename = "shaders/bounding_box.vert", .type = shader_type_e::VERTEX},
+      {.filename = "shaders/bounding_box.frag",
+       .type = shader_type_e::FRAGMENT}};
+
+  const uint32_t bounding_prog_id =
+      setup::create_program(alloc.root_alloc, bounding_shaders, 2);
+
+  const glm::mat4 bounds =
+      compute_bounding_box(vert_data->positions, vertex_count);
+  struct bounding_box_instances {
+    glm::mat4 models[instance_count];
+  };
+
+  bounding_box_instances *gpu_bounding_data =
+      allocator<bounding_box_instances>::alloc(alloc.root_alloc);
+
+  buffer_update_info_t bounding_box_update_buffer;
+  const uint32_t bounding_vid = create_bounding_box_vao(
+      gpu_bounding_data->models, instance_count, &bounding_box_update_buffer);
+
+  entity bounding_e[3]{{.program_id = bounding_prog_id,
+                        .varray_id = bounding_vid,
+                        .offset = 0,
+                        .count = 4,
+                        .instance_count = instance_count,
+                        .primitive_type = primitive_type_e::LINE_LOOP,
+                        .render_type = entity::INDEX_INSTANCED},
+                       {.program_id = bounding_prog_id,
+                        .varray_id = bounding_vid,
+                        .offset = 4,
+                        .count = 4,
+                        .instance_count = instance_count,
+                        .primitive_type = primitive_type_e::LINE_LOOP,
+                        .render_type = entity::INDEX_INSTANCED},
+                       {.program_id = bounding_prog_id,
+                        .varray_id = bounding_vid,
+                        .offset = 8,
+                        .count = 8,
+                        .instance_count = instance_count,
+                        .primitive_type = primitive_type_e::LINES,
+                        .render_type = entity::INDEX_INSTANCED}};
 
   uint32_t texture_id =
       setup::create_texture(alloc.root_alloc, "textures/earth.jpg");
@@ -234,8 +281,18 @@ int main() {
           prep_mat_data->models, prep_mat_data->animations, instance_count);
     }
     {
-      METRIC(RenderFrame);
+      METRIC(PrepBoundBoxModels);
+
+      setup::compute_bounding_model_matrixes(gpu_bounding_data->models,
+                                             gpu_mat_data->model_transforms,
+                                             instance_count, bounds);
+    }
+    {
+      METRIC(BeginFrame);
       renderer::begin_frame();
+    }
+    {
+      METRIC(RenderObject);
 
       uniform::set_value(e.program_id, 10, PV);
       uniform::set_value(e.program_id, 15, control.mode);
@@ -243,15 +300,25 @@ int main() {
       buffer::update(&gpu_matrix_buffer_update[0], 1);
 
       renderer::render_targets(&e, 1);
+    }
+    if (control.show_bounding_box) {
 
+      METRIC(RenderBoundBox);
+
+      uniform::set_value(bounding_e[0].program_id, 7, PV);
+
+      buffer::update(&bounding_box_update_buffer, 1);
+
+      renderer::render_targets(bounding_e, 3);
+    }
+    {
+      METRIC(SubmitFrame);
       renderer::end_frame();
     }
-
     {
       METRIC(SwapBuffers);
       swap_buffers(&control.main_window_id, 1);
     }
-
     {
       METRIC(EndFrameTasks);
       logger::flush();

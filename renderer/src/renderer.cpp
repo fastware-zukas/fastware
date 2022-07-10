@@ -25,13 +25,14 @@ void render_targets(const entity *entities, int32_t count) {
     program::select(e.program_id);
     switch (e.render_type) {
     case entity::VERTEX:
-      present::render(e.varray_id, e.count);
+      present::render(e.varray_id, e.offset, e.count, e.primitive_type);
       break;
     case entity::INDEX:
-      present::render_indexed(e.varray_id, e.count);
+      present::render_indexed(e.varray_id, e.offset, e.count, e.primitive_type);
       break;
     case entity::INDEX_INSTANCED:
-      present::render_indexed_instanced(e.varray_id, e.count, e.instance_count);
+      present::render_indexed_instanced(e.varray_id, e.offset, e.count,
+                                        e.instance_count, e.primitive_type);
       break;
     }
   }

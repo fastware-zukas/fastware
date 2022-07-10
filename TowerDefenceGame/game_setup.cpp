@@ -205,6 +205,10 @@ WINDOW_KEY_LBL:
       control->mode = 3;
       break;
     }
+    case input::key::KEY_B: {
+      control->show_bounding_box = !control->show_bounding_box;
+      break;
+    }
     case input::key::KEY_ESCAPE: {
       destroy_window(control->main_window_id);
       control->main_window_id = 0;
@@ -336,6 +340,15 @@ void compute_gpu_matrixes(glm::mat4 *model_transforms,
     model_transforms[i] = models[i] * animations[i];
     normal_transforms[i] =
         glm::mat3(glm::inverseTranspose(model_transforms[i]));
+  }
+}
+
+void compute_bounding_model_matrixes(glm::mat4 *model_transforms,
+                                     glm::mat4 *models, int32_t count,
+                                     glm::mat4 bounding_box) {
+
+  for (int32_t i = 0; i < count; ++i) {
+    model_transforms[i] = models[i] * bounding_box;
   }
 }
 

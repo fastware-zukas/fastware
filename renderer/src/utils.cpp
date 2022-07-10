@@ -46,6 +46,35 @@ constexpr GLenum select(buffer_target_e target) {
   return 0;
 }
 
+constexpr GLenum select(primitive_type_e target) {
+  switch (target) {
+  case primitive_type_e::POINTS:
+    return GL_POINTS;
+  case primitive_type_e::LINES:
+    return GL_LINES;
+  case primitive_type_e::LINE_LOOP:
+    return GL_LINE_LOOP;
+  case primitive_type_e::LINE_STRIP:
+    return GL_LINE_STRIP;
+  case primitive_type_e::TRIANGLES:
+    return GL_TRIANGLES;
+  case primitive_type_e::TRIANGLE_STRIP:
+    return GL_TRIANGLE_STRIP;
+  case primitive_type_e::TRIANGLE_FAN:
+    return GL_TRIANGLE_FAN;
+  case primitive_type_e::LINES_ADJACENCY:
+    return GL_LINES_ADJACENCY;
+  case primitive_type_e::LINE_STRIP_ADJACENCY:
+    return GL_LINE_STRIP_ADJACENCY;
+  case primitive_type_e::TRIANGLES_ADJACENCY:
+    return GL_TRIANGLES_ADJACENCY;
+  case primitive_type_e::TRIANGLE_STRIP_ADJACENCY:
+    return GL_TRIANGLE_STRIP_ADJACENCY;
+  }
+
+  return 0;
+}
+
 constexpr GLenum select(buffer_type_e type) {
 
   switch (type) {
@@ -191,22 +220,28 @@ void varray::destroy(const uint32_t *varray_ids, uint32_t count) {
   GLCALL(glDeleteVertexArrays, static_cast<GLsizei>(count), varray_ids);
 }
 
-void present::render(uint32_t varray_id, uint32_t vertex_count) {
+void present::render(uint32_t varray_id, uint32_t offset, uint32_t vertex_count,
+                     primitive_type_e type) {
   GLCALL(glBindVertexArray, varray_id);
-  GLCALL(glDrawArrays, GL_TRIANGLES, 0, static_cast<GLsizei>(vertex_count));
+  GLCALL(glDrawArrays, select(type), offset,
+         static_cast<GLsizei>(vertex_count));
 }
 
-void present::render_indexed(uint32_t varray_id, uint32_t index_count) {
+void present::render_indexed(uint32_t varray_id, uint32_t offset,
+                             uint32_t index_count, primitive_type_e type) {
   GLCALL(glBindVertexArray, varray_id);
-  GLCALL(glDrawElements, GL_TRIANGLES, static_cast<GLsizei>(index_count),
-         GL_UNSIGNED_INT, nullptr);
+  GLCALL(glDrawElements, select(type), static_cast<GLsizei>(index_count),
+         GL_UNSIGNED_INT, reinterpret_cast<void *>(sizeof(uint32_t) * offset));
 }
 
-void present::render_indexed_instanced(uint32_t varray_id, uint32_t index_count,
-                                       uint32_t instance_count) {
+void present::render_indexed_instanced(uint32_t varray_id, uint32_t offset,
+                                       uint32_t index_count,
+                                       uint32_t instance_count,
+                                       primitive_type_e type) {
   GLCALL(glBindVertexArray, varray_id);
-  GLCALL(glDrawElementsInstanced, GL_TRIANGLES,
-         static_cast<GLsizei>(index_count), GL_UNSIGNED_INT, nullptr,
+  GLCALL(glDrawElementsInstanced, select(type),
+         static_cast<GLsizei>(index_count), GL_UNSIGNED_INT,
+         reinterpret_cast<void *>(sizeof(uint32_t) * offset),
          static_cast<GLsizei>(instance_count));
 }
 
@@ -219,22 +254,22 @@ uint32_t program::create(const fastware::shader_source_t *shaders,
 
     GLuint shader_id{0};
     switch (s.type) {
-    case shader_type::VERTEX:
+    case shader_type_e::VERTEX:
       shader_id = glCreateShader(GL_VERTEX_SHADER);
       break;
-    case shader_type::FRAGMENT:
+    case shader_type_e::FRAGMENT:
       shader_id = glCreateShader(GL_FRAGMENT_SHADER);
       break;
-    case shader_type::GEOMETRY:
+    case shader_type_e::GEOMETRY:
       shader_id = glCreateShader(GL_GEOMETRY_SHADER);
       break;
-    case shader_type::TESS_CONTROL:
+    case shader_type_e::TESS_CONTROL:
       shader_id = glCreateShader(GL_TESS_CONTROL_SHADER);
       break;
-    case shader_type::TESS_EVALUATION:
+    case shader_type_e::TESS_EVALUATION:
       shader_id = glCreateShader(GL_TESS_EVALUATION_SHADER);
       break;
-    case shader_type::COMPUTE:
+    case shader_type_e::COMPUTE:
       shader_id = glCreateShader(GL_COMPUTE_SHADER);
       break;
     }
