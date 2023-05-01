@@ -54,7 +54,7 @@ int main() {
 
   using namespace fastware;
 
-  constexpr uint32_t instance_count = 50000;
+  constexpr uint32_t instance_count = 300000;
   constexpr uint32_t units = 24;
   constexpr uint32_t vertex_count = geometry::sphere::vertex_count(units);
   constexpr uint32_t index_count = geometry::sphere::index_count(units);

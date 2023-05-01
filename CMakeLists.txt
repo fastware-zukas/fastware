@@ -42,7 +42,10 @@ add_definitions(-DHAVE_STD_ATOMIC)
 add_definitions(-DGLFW_INCLUDE_GLU)
 add_definitions(-DGLFW_INCLUDE_GLU)
 add_definitions(-DGLEW_STATIC)
-add_definitions(-DSDL2_STATIC)
+add_definitions(-DSDL_STATIC)
+set(SDL_SHARED OFF CACHE BOOL "No SDL2 shared library" FORCE)
+set(SDL_STATIC ON CACHE BOOL "SDL2 static library" FORCE)
+
 
 add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
@@ -51,6 +54,10 @@ add_definitions(-DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fno-omit-frame-pointer -std=c++17 -fno-rtti -fno-exceptions")
 
@@ -79,7 +86,7 @@ add_subdirectory(renderer)
 add_subdirectory(window)
 
 
-SET(GL_LIBS ${OPENGL_LIBRARY} GLEW SDL2)
+SET(GL_LIBS ${OPENGL_LIBRARY} glew_s SDL2)
 
 message("LIBRARIES: ${GL_LIBS}")
 

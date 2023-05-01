@@ -17,7 +17,7 @@ struct allocator_t;
 
 namespace setup {
 
-constexpr int64_t FRAME{16666667};
+constexpr int64_t FRAME{1000000000/60};
 
 struct matrixes {
   glm::mat4 view;
