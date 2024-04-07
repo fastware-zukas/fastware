@@ -1,13 +1,13 @@
 #include "geometry.h"
 
-#include <fastware/math.h>
+#include <fastware/maths.h>
 
 namespace fastware {
 
 namespace geometry {
 namespace sphere {
 
-void generate(glm::vec3 *positions, glm::vec3 *normals, glm::vec2 *uvs,
+void generate(vec3_t *positions, vec3_t *normals, vec2_t *uvs,
               uint32_t *indexes, uint32_t units) {
 
   int64_t steps = units;
@@ -40,9 +40,9 @@ void generate(glm::vec3 *positions, glm::vec3 *normals, glm::vec2 *uvs,
       s = float(j) / float(steps);
       t = float(i) / float(steps);
 
-      positions[index] = glm::vec3{x, y, z};
-      normals[index] = glm::vec3{nx, ny, nz};
-      uvs[index] = glm::vec2{s, t};
+      positions[index] = vec3_t{x, y, z};
+      normals[index] = vec3_t{nx, ny, nz};
+      uvs[index] = vec2_t{s, t};
       ++index;
     }
   }
@@ -78,7 +78,7 @@ void generate(glm::vec3 *positions, glm::vec3 *normals, glm::vec2 *uvs,
 
 namespace matrix {
 
-void fill(glm::mat4 *matrixes, int32_t count, glm::mat4 value) {
+void fill(mat4_t *matrixes, int32_t count, mat4_t value) {
   for (int32_t i = 0; i < count; ++i) {
     matrixes[i] = value;
   }

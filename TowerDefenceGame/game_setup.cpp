@@ -9,14 +9,12 @@
 #include <fastware/file.h>
 #include <fastware/image_source.h>
 #include <fastware/logger.h>
-#include <fastware/math.h>
+#include <fastware/maths.h>
 #include <fastware/memory.h>
 #include <fastware/stopwatch.h>
+#include <fastware/types.h>
 #include <fastware/utils.h>
 #include <fastware/window.h>
-
-#include <glm/gtc/matrix_inverse.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace fastware {
 
@@ -239,11 +237,11 @@ END_STREAM_LBL:
               duration, FRAME, clock::system_time_delta());
 
   if (states.current_key_states[value(input::key::KEY_Q)]) {
-    control->cam = pan_horizontal(control->cam, glm::radians(1.f) * duration);
+    control->cam = pan_horizontal(control->cam, glm_rad(1.f) * duration);
   }
 
   if (states.current_key_states[value(input::key::KEY_E)]) {
-    control->cam = pan_horizontal(control->cam, glm::radians(-1.f) * duration);
+    control->cam = pan_horizontal(control->cam, glm_rad(-1.f) * duration);
   }
 
   if (states.current_key_states[value(input::key::KEY_W)]) {
@@ -275,7 +273,7 @@ END_STREAM_LBL:
   return;
 }
 
-void create_transforms(glm::mat4 *matrixes, int32_t count) {
+void create_transforms(mat4_t *matrixes, int32_t count) {
 
   std::random_device
       rd; // Will be used to obtain a seed for the random number engine
@@ -289,11 +287,11 @@ void create_transforms(glm::mat4 *matrixes, int32_t count) {
     float x = dis(gen);
     float y = dis(gen);
     float z = dis(gen);
-    glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(r, r, r));
-    glm::mat4 rot =
-        glm::rotate(glm::mat4(1.f), glm::radians(-90.f), glm::vec3(1, 0, 0));
-    glm::mat4 move = glm::translate(glm::mat4(1.f), glm::vec3(x, y, z));
-    matrixes[i] = move * rot * scale;
+    mat4_t scale = glms_scale(glms_mat4_identity(), vec3_t{r, r, r});
+    mat4_t rot =
+        glms_rotate(glms_mat4_identity(), glm_rad(-90.f), vec3_t{1, 0, 0});
+    mat4_t move = glms_translate(glms_mat4_identity(), vec3_t{x, y, z});
+    matrixes[i] = glms_mul(move, glms_mul(rot, scale));
   }
 }
 
@@ -309,46 +307,44 @@ void create_speeds(float *speeds, int32_t count) {
   }
 }
 
-void update_transforms(glm::mat4 *transforms, float *speeds, int32_t count) {
+void update_transforms(mat4_t *transforms, float *speeds, int32_t count) {
   constexpr float pi_scale = PI / 10000000000.f;
   const float time = clock::game_time_delta() * pi_scale;
   for (int32_t i = 0; i < count; ++i) {
     transforms[i] =
-        glm::rotate(transforms[i], time * speeds[i], glm::vec3(0, 0, 1));
+        glms_rotate(transforms[i], time * speeds[i], vec3_t{0, 0, 1});
   }
 }
 
-void compute_model_matrixes(glm::mat4 *model_transforms, glm::mat4 *models,
-                            glm::mat4 *animations, int32_t count) {
+void compute_model_matrixes(mat4_t *model_transforms, mat4_t *models,
+                            mat4_t *animations, int32_t count) {
   for (int32_t i = 0; i < count; ++i) {
-    model_transforms[i] = models[i] * animations[i];
+    model_transforms[i] = glms_mul(models[i], animations[i]);
   }
 }
 
-void compute_normals_matrixes(glm::mat3 *normal_transforms,
-                              glm::mat4 *model_transforms, int32_t count) {
+void compute_normals_matrixes(mat3_t *normal_transforms,
+                              mat4_t *model_transforms, int32_t count) {
   for (int32_t i = 0; i < count; ++i) {
-    normal_transforms[i] =
-        glm::mat3(glm::inverseTranspose(model_transforms[i]));
+    normal_transforms[i] = glms_mat4_pick3(
+        glms_mat4_transpose(glms_mat4_inv(model_transforms[i])));
   }
 }
 
-void compute_gpu_matrixes(glm::mat4 *model_transforms,
-                          glm::mat3 *normal_transforms, glm::mat4 *models,
-                          glm::mat4 *animations, int32_t count) {
+void compute_gpu_matrixes(mat4_t *model_transforms, mat3_t *normal_transforms,
+                          mat4_t *models, mat4_t *animations, int32_t count) {
   for (int32_t i = 0; i < count; ++i) {
-    model_transforms[i] = models[i] * animations[i];
-    normal_transforms[i] =
-        glm::mat3(glm::inverseTranspose(model_transforms[i]));
+    model_transforms[i] = glms_mul(models[i], animations[i]);
+    normal_transforms[i] = glms_mat4_pick3(
+        glms_mat4_transpose(glms_mat4_inv(model_transforms[i])));
   }
 }
 
-void compute_bounding_model_matrixes(glm::mat4 *model_transforms,
-                                     glm::mat4 *models, int32_t count,
-                                     glm::mat4 bounding_box) {
+void compute_bounding_model_matrixes(mat4_t *model_transforms, mat4_t *models,
+                                     int32_t count, mat4_t bounding_box) {
 
   for (int32_t i = 0; i < count; ++i) {
-    model_transforms[i] = models[i] * bounding_box;
+    model_transforms[i] = glms_mul(models[i], bounding_box);
   }
 }
 

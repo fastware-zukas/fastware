@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 
+#include <cassert>
 #include <cstdio>
 #include <utility>
 
@@ -394,13 +395,13 @@ void uniform::set_value(uint32_t program_id, uint32_t location, float value) {
 }
 
 void uniform::set_value(uint32_t program_id, uint32_t location,
-                        const glm::vec3 &value) {
-  glProgramUniform3fv(program_id, location, 1, &value[0]);
+                        const vec3_t &value) {
+  glProgramUniform3fv(program_id, location, 1, value.raw);
 }
 
 void uniform::set_value(uint32_t program_id, uint32_t location,
-                        const glm::mat4 &value) {
-  glProgramUniformMatrix4fv(program_id, location, 1, GL_FALSE, &value[0][0]);
+                        const mat4_t &value) {
+  glProgramUniformMatrix4fv(program_id, location, 1, GL_FALSE, value.raw[0]);
 }
 
 static constexpr GLenum convert(wrap_e value) {

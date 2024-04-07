@@ -4,8 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <glm/glm.hpp>
-
 #include <fastware/types.h>
 
 namespace fastware {

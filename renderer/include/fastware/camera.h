@@ -6,12 +6,12 @@
 namespace fastware {
 
 struct camera {
-  glm::vec3 pos;
-  glm::vec3 dir;
-  glm::vec3 up;
+  vec3_t pos;
+  vec3_t dir;
+  vec3_t up;
 };
 
-glm::mat4 camera_view(camera c);
+mat4_t camera_view(camera c);
 
 camera move_parallel(camera c, float_t rate);
 

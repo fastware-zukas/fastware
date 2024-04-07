@@ -2,7 +2,8 @@
 #define COMMON_TYPES_H
 
 #include "fastware_def.h"
-#include <glm/glm.hpp>
+#include <cglm/cglm.h>
+#include <cglm/struct.h>
 
 namespace fastware {
 
@@ -493,6 +494,12 @@ constexpr uint32_t value(input::key t) noexcept {
 constexpr uint32_t value(input::action t) noexcept {
   return static_cast<uint32_t>(t);
 }
+
+using vec2_t = vec2s;
+using vec3_t = vec3s;
+using vec4_t = vec4s;
+using mat3_t = mat3s;
+using mat4_t = mat4s;
 
 } // namespace fastware
 

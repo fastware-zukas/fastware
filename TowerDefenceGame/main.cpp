@@ -6,9 +6,6 @@
 #include <fastware/logger.h>
 #include <fastware/memory.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <algorithm>
 #include <cstdint>
 #include <random>
@@ -22,10 +19,11 @@
 #include <fastware/renderer.h>
 #include <fastware/renderer_state.h>
 #include <fastware/stopwatch.h>
+#include <fastware/types.h>
 #include <fastware/utils.h>
 
-#include "game_setup.h"
-#include "geometry.h"
+#include <game_setup.h>
+#include <geometry.h>
 
 template <typename T> struct allocator {
   static T *alloc(fastware::memory::allocator_t *alloc) {
@@ -66,9 +64,9 @@ int main() {
 
   logger::init_logger(alloc.root_alloc, memory::Mb * 100);
 
-  setup::control_block control{.cam = camera{glm::vec3(50.0f, 50.0f, 300.0f),
-                                             glm::vec3(0.0f, -0.45f, -1.0f),
-                                             glm::vec3(0.0f, 1.0f, 0.0f)},
+  setup::control_block control{.cam = camera{vec3_t{50.0f, 50.0f, 300.0f},
+                                             vec3_t{0.0f, -0.45f, -1.0f},
+                                             vec3_t{0.0f, 1.0f, 0.0f}},
                                .main_window_id = 0,
                                .mode = 0,
                                .show_bounding_box = false};
@@ -89,9 +87,9 @@ int main() {
   const uint32_t prog_id = setup::create_program(alloc.root_alloc, shaders, 2);
 
   struct vertex_data {
-    glm::vec3 positions[vertex_count];
-    glm::vec3 normals[vertex_count];
-    glm::vec2 uvs[vertex_count];
+    vec3_t positions[vertex_count];
+    vec3_t normals[vertex_count];
+    vec2_t uvs[vertex_count];
   };
 
   struct index_data {
@@ -99,14 +97,14 @@ int main() {
   };
 
   struct prep_matrixes {
-    glm::mat4 models[instance_count];
-    glm::mat4 animations[instance_count];
+    mat4_t models[instance_count];
+    mat4_t animations[instance_count];
     float speeds[instance_count];
   };
 
   struct gpu_matrixes {
-    glm::mat4 model_transforms[instance_count];
-    glm::mat3 normal_transforms[instance_count];
+    mat4_t model_transforms[instance_count];
+    mat3_t normal_transforms[instance_count];
   };
 
   vertex_data *vert_data = allocator<vertex_data>::alloc(alloc.root_alloc);
@@ -169,7 +167,7 @@ int main() {
       allocator<prep_matrixes>::alloc(alloc.root_alloc);
 
   geometry::matrix::fill(prep_mat_data->animations, instance_count,
-                         glm::mat4(1.f));
+                         glms_mat4_identity());
   setup::create_transforms(prep_mat_data->models, instance_count);
   setup::create_speeds(prep_mat_data->speeds, instance_count);
 
@@ -181,10 +179,10 @@ int main() {
   const uint32_t bounding_prog_id =
       setup::create_program(alloc.root_alloc, bounding_shaders, 2);
 
-  const glm::mat4 bounds =
+  const mat4_t bounds =
       compute_bounding_box(vert_data->positions, vertex_count);
   struct bounding_box_instances {
-    glm::mat4 models[instance_count];
+    mat4_t models[instance_count];
   };
 
   bounding_box_instances *gpu_bounding_data =
@@ -234,8 +232,8 @@ int main() {
   sampler::bind(texture_bind_location, 1, &sampler_id);
 
   uniform::set_sampler_value(e.program_id, 11, texture_bind_location);
-  uniform::set_value(e.program_id, 12, glm::vec3(0, 0, 0));
-  uniform::set_value(e.program_id, 13, glm::vec3(255, 255, 175));
+  uniform::set_value(e.program_id, 12, vec3_t{0, 0, 0});
+  uniform::set_value(e.program_id, 13, vec3_t{255, 255, 175});
   uniform::set_value(e.program_id, 14, 1200.f);
   uniform::set_value(e.program_id, 15, control.mode);
 
@@ -254,7 +252,7 @@ int main() {
 
   setup::matrixes mats{
       .view = camera_view(control.cam),
-      .projection = glm::perspective(glm::radians(60.f),
+      .projection = glms_perspective(glm_rad(60.f),
                                      float(info.width) / float(info.height),
                                      0.01f, 2000.0f)};
 
@@ -269,7 +267,7 @@ int main() {
 
     mats.view = camera_view(control.cam);
 
-    glm::mat4 PV = mats.projection * mats.view;
+    mat4_t PV = glms_mul(mats.projection, mats.view);
 
     {
       METRIC(PrepModels);

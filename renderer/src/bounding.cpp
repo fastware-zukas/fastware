@@ -1,17 +1,16 @@
 #include <fastware/bounding.h>
 #include <fastware/data_types.h>
 #include <fastware/utils.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace fastware {
 
-uint32_t create_bounding_box_vao(glm::mat4 *matrixes, uint32_t count,
+uint32_t create_bounding_box_vao(mat4_t *matrixes, uint32_t count,
                                  buffer_update_info_t *update_buffer) {
 
-  constexpr glm::vec3 vertices[]{{-0.5, -0.5, -0.5}, {0.5, -0.5, -0.5},
-                                 {0.5, 0.5, -0.5},   {-0.5, 0.5, -0.5},
-                                 {-0.5, -0.5, 0.5},  {0.5, -0.5, 0.5},
-                                 {0.5, 0.5, 0.5},    {-0.5, 0.5, 0.5}};
+  constexpr vec3_t vertices[]{{-0.5, -0.5, -0.5}, {0.5, -0.5, -0.5},
+                              {0.5, 0.5, -0.5},   {-0.5, 0.5, -0.5},
+                              {-0.5, -0.5, 0.5},  {0.5, -0.5, 0.5},
+                              {0.5, 0.5, 0.5},    {-0.5, 0.5, 0.5}};
 
   constexpr uint32_t indexes[]{0, 1, 2, 3, 4, 5, 6, 7, 0, 4, 1, 5, 2, 6, 3, 7};
 
@@ -26,7 +25,7 @@ uint32_t create_bounding_box_vao(glm::mat4 *matrixes, uint32_t count,
        .data = indexes},
       {.target = buffer_target_e::ARRAY_BUFFER,
        .type = buffer_type_e::DYNAMIC,
-       .size = size_of<glm::mat4, uint32_t>() * count,
+       .size = size_of<mat4_t, uint32_t>() * count,
        .data = matrixes}};
 
   uint32_t buffers[3]{0};
@@ -49,13 +48,13 @@ uint32_t create_bounding_box_vao(glm::mat4 *matrixes, uint32_t count,
 
   *update_buffer = {.buffer_id = buffers[2],
                     .offset = 0,
-                    .size = size_of<glm::mat4, uint32_t>() * count,
+                    .size = size_of<mat4_t, uint32_t>() * count,
                     .data = matrixes};
 
   return vert_id;
 }
 
-glm::mat4 compute_bounding_box(glm::vec3 *vetexes, int32_t count) {
+mat4_t compute_bounding_box(vec3_t *vetexes, int32_t count) {
 
   float min_x = vetexes[0].x;
   float min_y = vetexes[0].y;
@@ -80,11 +79,11 @@ glm::mat4 compute_bounding_box(glm::vec3 *vetexes, int32_t count) {
       max_z = vetexes[i].z;
   }
 
-  glm::vec3 size = glm::vec3(max_x - min_x, max_y - min_y, max_z - min_z);
-  glm::vec3 center =
-      glm::vec3((min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2);
-  glm::mat4 transform =
-      glm::translate(glm::mat4(1), center) * glm::scale(glm::mat4(1), size);
+  vec3_t size{max_x - min_x, max_y - min_y, max_z - min_z};
+  vec3_t center{(min_x + max_x) / 2.f, (min_y + max_y) / 2.f,
+                (min_z + max_z) / 2.f};
+  mat4_t transform = glms_mat4_mul(glms_translate(glms_mat4_identity(), center),
+                                   glms_scale(glms_mat4_identity(), size));
   return transform;
 }
 } // namespace fastware

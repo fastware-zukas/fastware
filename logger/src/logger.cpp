@@ -1,6 +1,6 @@
 #include <fastware/logger.h>
 
-#include <fastware/math.h>
+#include <fastware/maths.h>
 #include <fastware/memory.h>
 
 #include <chrono>
