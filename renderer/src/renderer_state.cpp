@@ -114,13 +114,13 @@ GLenum depth_func(renderer_depth_func func) {
   return GL_NEVER;
 }
 
-void glSetCapability(GLenum capability, toggle status) {
+void glSetCapability(GLenum capability, toggle_e status) {
   switch (status) {
-  case toggle::OFF: {
+  case toggle_e::OFF: {
     glDisable(capability);
     break;
   }
-  case toggle::ON: {
+  case toggle_e::ON: {
     glEnable(capability);
     break;
   }

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <fastware/memory.h>
 #include <fastware/types.h>
 
 namespace fastware {
@@ -85,7 +86,7 @@ enum class min_filter_e {
 
 enum class ds_mode { DEPTH, STENCIL };
 
-enum class parameter_type {
+enum class parameter_type_e {
   WRAP_S,
   WRAP_T,
   WRAP_R,
@@ -156,8 +157,8 @@ struct vertex_array_definition_t {
 
 struct vertex_item_description_t {
   data_type_e type;
-  uint32_t size : 31;
-  uint32_t normalize : 1;
+  uint32_t size;
+  uint32_t normalize;
 };
 
 struct buffer_create_info_t {
@@ -174,45 +175,22 @@ struct buffer_update_info_t {
   const void *data{nullptr};
 };
 
-struct param_wrap_t {
-  parameter_type type;
-  wrap_e wrap;
-};
-
-struct param_min_filter_t {
-  parameter_type type;
-  min_filter_e filter;
-};
-
-struct param_mag_filter_t {
-  parameter_type type;
-  mag_filter_e filter;
-};
-
-struct param_ds_mode_t {
-  parameter_type type;
-  ds_mode mode;
-};
-
 struct param_info_t {
+  parameter_type_e type;
   union {
-    param_wrap_t wrap;
-    param_min_filter_t min_filter;
-    param_mag_filter_t mag_filter;
-    param_ds_mode_t ds_mode;
+    wrap_e wrap;
+    min_filter_e min_filter;
+    mag_filter_e mag_filter;
+    ds_mode mode;
   };
-  param_info_t(param_wrap_t &&d) : wrap(d) {}
-  param_info_t(param_min_filter_t &&d) : min_filter(d) {}
-  param_info_t(param_mag_filter_t &&d) : mag_filter(d) {}
-  param_info_t(param_ds_mode_t &&d) : ds_mode(d) {}
-
-  parameter_type type() const { return wrap.type; }
 };
 
 struct texture_create_info_t {
   uint32_t width{0};
   uint32_t height{0};
-  graphics::texture_format format{graphics::texture_format::RGBA8};
+  graphics::texture_format_e format{graphics::texture_format_e::RGBA8};
+  graphics::pixel_align_e pixel_pack_align{graphics::pixel_align_e::DEFAULT};
+  graphics::pixel_align_e pixel_unpack_align{graphics::pixel_align_e::DEFAULT};
   uint32_t param_info_count{0};
   const void *data{nullptr};
   const param_info_t *param_infos{nullptr};
@@ -221,6 +199,43 @@ struct texture_create_info_t {
 struct sampler_create_info_t {
   uint32_t param_info_count{0};
   const param_info_t *param_infos{nullptr};
+};
+
+struct character_t {
+  vec2i_t size{0, 0};
+  vec2i_t bearing{0, 0};
+  vec2_t top_left{0, 0};
+  vec2_t bottom_right{0, 0};
+  uint32_t advance{0};
+};
+
+struct text_atlas_t {
+  uint32_t texture_id{0};
+  uint32_t width{0};
+  uint32_t height{0};
+  character_t chars[128];
+};
+
+struct text_buffer_t {
+  uint32_t varray_id{0};
+  uint32_t array_buffer{0};
+  uint32_t index_buffer{0};
+};
+
+struct create_text_atlas_info_t {
+  memory::allocator_t *alloc{nullptr};
+  const char *font_file{nullptr};
+};
+
+struct update_text_buffer_info_t {
+  uint32_t array_buffer_id{0};
+  uint32_t element_buffer_id{0};
+  text_atlas_t *atlas{nullptr};
+  const char *text{nullptr};
+  uint32_t length{0};
+  vec2_t pos{0.f, 0.f};
+  float_t size{1.f};
+  float_t rotation{0.f};
 };
 
 } // namespace fastware

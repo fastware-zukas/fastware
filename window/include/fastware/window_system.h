@@ -20,7 +20,7 @@ public:
                 void *processor_context);
   ~window_system();
 
-  void frame_limiter(toggle state) const;
+  void frame_limiter(toggle_e state) const;
   void poll();
 
 private:

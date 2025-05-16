@@ -459,129 +459,129 @@ static constexpr GLenum convert(ds_mode value) {
 }
 
 static constexpr std::pair<GLenum, GLenum>
-convert(graphics::texture_format value) {
+convert(graphics::texture_format_e value) {
   switch (value) {
-  case graphics::texture_format::R8:
+  case graphics::texture_format_e::R8:
     return {GL_R8, GL_RED};
-  case graphics::texture_format::R8_SNORM:
+  case graphics::texture_format_e::R8_SNORM:
     return {GL_R8_SNORM, GL_RED};
-  case graphics::texture_format::R16:
+  case graphics::texture_format_e::R16:
     return {GL_R16, GL_RED};
-  case graphics::texture_format::R16_SNORM:
+  case graphics::texture_format_e::R16_SNORM:
     return {GL_R16_SNORM, GL_RED};
-  case graphics::texture_format::RG8:
+  case graphics::texture_format_e::RG8:
     return {GL_RG8, GL_RG};
-  case graphics::texture_format::RG8_SNORM:
+  case graphics::texture_format_e::RG8_SNORM:
     return {GL_RG8_SNORM, GL_RG};
-  case graphics::texture_format::RG16:
+  case graphics::texture_format_e::RG16:
     return {GL_RG16, GL_RG};
-  case graphics::texture_format::RG16_SNORM:
+  case graphics::texture_format_e::RG16_SNORM:
     return {GL_RG16_SNORM, GL_RG};
-  case graphics::texture_format::R3_G3_B2:
+  case graphics::texture_format_e::R3_G3_B2:
     return {GL_R3_G3_B2, GL_RGB};
-  case graphics::texture_format::RGB4:
+  case graphics::texture_format_e::RGB4:
     return {GL_RGB4, GL_RGB};
-  case graphics::texture_format::RGB5:
+  case graphics::texture_format_e::RGB5:
     return {GL_RGB5, GL_RGB};
-  case graphics::texture_format::RGB8:
+  case graphics::texture_format_e::RGB8:
     return {GL_RGB8, GL_RGB};
-  case graphics::texture_format::RGB8_SNORM:
+  case graphics::texture_format_e::RGB8_SNORM:
     return {GL_RGB8_SNORM, GL_RGB};
-  case graphics::texture_format::RGB10:
+  case graphics::texture_format_e::RGB10:
     return {GL_RGB10, GL_RGB};
-  case graphics::texture_format::RGB12:
+  case graphics::texture_format_e::RGB12:
     return {GL_RGB12, GL_RGB};
-  case graphics::texture_format::RGB16_SNORM:
+  case graphics::texture_format_e::RGB16_SNORM:
     return {GL_RGB16_SNORM, GL_RGB};
-  case graphics::texture_format::RGBA2:
+  case graphics::texture_format_e::RGBA2:
     return {GL_RGBA2, GL_RGBA};
-  case graphics::texture_format::RGBA4:
+  case graphics::texture_format_e::RGBA4:
     return {GL_RGBA4, GL_RGBA};
-  case graphics::texture_format::RGB5_A1:
+  case graphics::texture_format_e::RGB5_A1:
     return {GL_RGB5_A1, GL_RGBA};
-  case graphics::texture_format::RGBA8:
+  case graphics::texture_format_e::RGBA8:
     return {GL_RGBA8, GL_RGBA};
-  case graphics::texture_format::RGBA8_SNORM:
+  case graphics::texture_format_e::RGBA8_SNORM:
     return {GL_RGBA8_SNORM, GL_RGBA};
-  case graphics::texture_format::RGB10_A2:
+  case graphics::texture_format_e::RGB10_A2:
     return {GL_RGB10_A2, GL_RGBA};
-  case graphics::texture_format::RGB10_A2UI:
+  case graphics::texture_format_e::RGB10_A2UI:
     return {GL_RGB10_A2UI, GL_RGBA};
-  case graphics::texture_format::RGBA12:
+  case graphics::texture_format_e::RGBA12:
     return {GL_RGBA12, GL_RGBA};
-  case graphics::texture_format::RGBA16:
+  case graphics::texture_format_e::RGBA16:
     return {GL_RGBA16, GL_RGBA};
-  case graphics::texture_format::SRGB8:
+  case graphics::texture_format_e::SRGB8:
     return {GL_SRGB8, GL_RGB};
-  case graphics::texture_format::SRGB8_ALPHA8:
+  case graphics::texture_format_e::SRGB8_ALPHA8:
     return {GL_SRGB8_ALPHA8, GL_RGBA};
-  case graphics::texture_format::R16F:
+  case graphics::texture_format_e::R16F:
     return {GL_R16F, GL_RED};
-  case graphics::texture_format::RG16F:
+  case graphics::texture_format_e::RG16F:
     return {GL_RG16F, GL_RG};
-  case graphics::texture_format::RGB16F:
+  case graphics::texture_format_e::RGB16F:
     return {GL_RGB16F, GL_RGB};
-  case graphics::texture_format::RGBA16F:
+  case graphics::texture_format_e::RGBA16F:
     return {GL_RGBA16F, GL_RGBA};
-  case graphics::texture_format::R32F:
+  case graphics::texture_format_e::R32F:
     return {GL_R32F, GL_RED};
-  case graphics::texture_format::RG32F:
+  case graphics::texture_format_e::RG32F:
     return {GL_RG32F, GL_RG};
-  case graphics::texture_format::RGB32F:
+  case graphics::texture_format_e::RGB32F:
     return {GL_RGB32F, GL_RGB};
-  case graphics::texture_format::RGBA32F:
+  case graphics::texture_format_e::RGBA32F:
     return {GL_RGBA32F, GL_RGBA};
-  case graphics::texture_format::R11F_G11F_B10F:
+  case graphics::texture_format_e::R11F_G11F_B10F:
     return {GL_R11F_G11F_B10F, GL_RGB};
-  case graphics::texture_format::RGB9_E5:
+  case graphics::texture_format_e::RGB9_E5:
     return {GL_RGB9_E5, GL_RGB};
-  case graphics::texture_format::R8I:
+  case graphics::texture_format_e::R8I:
     return {GL_R8I, GL_RED};
-  case graphics::texture_format::R8UI:
+  case graphics::texture_format_e::R8UI:
     return {GL_R8UI, GL_RED};
-  case graphics::texture_format::R16I:
+  case graphics::texture_format_e::R16I:
     return {GL_R16I, GL_RED};
-  case graphics::texture_format::R16UI:
+  case graphics::texture_format_e::R16UI:
     return {GL_R16UI, GL_RED};
-  case graphics::texture_format::R32I:
+  case graphics::texture_format_e::R32I:
     return {GL_R32I, GL_RED};
-  case graphics::texture_format::R32UI:
+  case graphics::texture_format_e::R32UI:
     return {GL_R32UI, GL_RED};
-  case graphics::texture_format::RG8I:
+  case graphics::texture_format_e::RG8I:
     return {GL_RG8I, GL_RGB};
-  case graphics::texture_format::RG8UI:
+  case graphics::texture_format_e::RG8UI:
     return {GL_RG8UI, GL_RG};
-  case graphics::texture_format::RG16I:
+  case graphics::texture_format_e::RG16I:
     return {GL_RG16I, GL_RG};
-  case graphics::texture_format::RG16UI:
+  case graphics::texture_format_e::RG16UI:
     return {GL_RG16UI, GL_RG};
-  case graphics::texture_format::RG32I:
+  case graphics::texture_format_e::RG32I:
     return {GL_RG32I, GL_RGB};
-  case graphics::texture_format::RG32UI:
+  case graphics::texture_format_e::RG32UI:
     return {GL_RG32UI, GL_RG};
-  case graphics::texture_format::RGB8I:
+  case graphics::texture_format_e::RGB8I:
     return {GL_RGB8I, GL_RG};
-  case graphics::texture_format::RGB8UI:
+  case graphics::texture_format_e::RGB8UI:
     return {GL_RGB8UI, GL_RGB};
-  case graphics::texture_format::RGB16I:
+  case graphics::texture_format_e::RGB16I:
     return {GL_RGB16I, GL_RGB};
-  case graphics::texture_format::RGB16UI:
+  case graphics::texture_format_e::RGB16UI:
     return {GL_RGB16UI, GL_RGB};
-  case graphics::texture_format::RGB32I:
+  case graphics::texture_format_e::RGB32I:
     return {GL_RGB32I, GL_RGB};
-  case graphics::texture_format::RGB32UI:
+  case graphics::texture_format_e::RGB32UI:
     return {GL_RGB32UI, GL_RGB};
-  case graphics::texture_format::RGBA8I:
+  case graphics::texture_format_e::RGBA8I:
     return {GL_RGBA8I, GL_RGBA};
-  case graphics::texture_format::RGBA8UI:
+  case graphics::texture_format_e::RGBA8UI:
     return {GL_RGBA8UI, GL_RGBA};
-  case graphics::texture_format::RGBA16I:
+  case graphics::texture_format_e::RGBA16I:
     return {GL_RGBA16I, GL_RGBA};
-  case graphics::texture_format::RGBA16UI:
+  case graphics::texture_format_e::RGBA16UI:
     return {GL_RGBA16UI, GL_RGBA};
-  case graphics::texture_format::RGBA32I:
+  case graphics::texture_format_e::RGBA32I:
     return {GL_RGBA32I, GL_RGBA};
-  case graphics::texture_format::RGBA32UI:
+  case graphics::texture_format_e::RGBA32UI:
     return {GL_RGBA32UI, GL_RGBA};
   }
 
@@ -644,35 +644,32 @@ static void set_params(uint32_t texture_id, const param_info_t *params,
   for (int32_t j = 0, cj = static_cast<int32_t>(count); j < cj; ++j) {
     const param_info_t &param = params[j];
 
-    switch (param.type()) {
-    case parameter_type::WRAP_S: {
-      parameter<T>::set(texture_id, GL_TEXTURE_WRAP_S,
-                        convert(param.wrap.wrap));
+    switch (param.type) {
+    case parameter_type_e::WRAP_S: {
+      parameter<T>::set(texture_id, GL_TEXTURE_WRAP_S, convert(param.wrap));
       break;
     }
-    case parameter_type::WRAP_T: {
-      parameter<T>::set(texture_id, GL_TEXTURE_WRAP_T,
-                        convert(param.wrap.wrap));
+    case parameter_type_e::WRAP_T: {
+      parameter<T>::set(texture_id, GL_TEXTURE_WRAP_T, convert(param.wrap));
       break;
     }
-    case parameter_type::WRAP_R: {
-      parameter<T>::set(texture_id, GL_TEXTURE_WRAP_R,
-                        convert(param.wrap.wrap));
+    case parameter_type_e::WRAP_R: {
+      parameter<T>::set(texture_id, GL_TEXTURE_WRAP_R, convert(param.wrap));
       break;
     }
-    case parameter_type::MIN_FILTER: {
+    case parameter_type_e::MIN_FILTER: {
       parameter<T>::set(texture_id, GL_TEXTURE_MIN_FILTER,
-                        convert(param.min_filter.filter));
+                        convert(param.min_filter));
       break;
     }
-    case parameter_type::MAG_FILTER: {
+    case parameter_type_e::MAG_FILTER: {
       parameter<T>::set(texture_id, GL_TEXTURE_MAG_FILTER,
-                        convert(param.mag_filter.filter));
+                        convert(param.mag_filter));
       break;
     }
-    case parameter_type::DS_MODE: {
+    case parameter_type_e::DS_MODE: {
       parameter<T>::set(texture_id, GL_DEPTH_STENCIL_TEXTURE_MODE,
-                        convert(param.ds_mode.mode));
+                        convert(param.mode));
       break;
     }
     }
@@ -683,9 +680,23 @@ void texture::create_2d(const texture_create_info_t *infos, uint32_t count,
                         uint32_t *tex_ids) {
   GLCALL(glCreateTextures, GL_TEXTURE_2D, 1, tex_ids);
 
+  int32_t pixel_pack_align;
+  glGetIntegerv(GL_PACK_ALIGNMENT, &pixel_pack_align);
+
+  int32_t pixel_unpack_align;
+  glGetIntegerv(GL_UNPACK_ALIGNMENT, &pixel_unpack_align);
+
   for (int32_t i = 0, ci = static_cast<int32_t>(count); i < ci; ++i) {
     const uint32_t texture_id = tex_ids[i];
     const texture_create_info_t &tex = infos[i];
+
+    if (tex.pixel_pack_align != graphics::pixel_align_e::DEFAULT) {
+      glPixelStorei(GL_PACK_ALIGNMENT, value(tex.pixel_pack_align));
+    }
+
+    if (tex.pixel_unpack_align != graphics::pixel_align_e::DEFAULT) {
+      glPixelStorei(GL_UNPACK_ALIGNMENT, value(tex.pixel_unpack_align));
+    }
 
     set_params<param_setter_type::TEXTURE>(texture_id, tex.param_infos,
                                            tex.param_info_count);
@@ -695,6 +706,14 @@ void texture::create_2d(const texture_create_info_t *infos, uint32_t count,
            convert(tex.format).second, GL_UNSIGNED_BYTE, tex.data);
 
     GLCALL(glGenerateTextureMipmap, texture_id);
+
+    if (tex.pixel_pack_align != graphics::pixel_align_e::DEFAULT) {
+      glPixelStorei(GL_PACK_ALIGNMENT, pixel_pack_align);
+    }
+
+    if (tex.pixel_unpack_align != graphics::pixel_align_e::DEFAULT) {
+      glPixelStorei(GL_UNPACK_ALIGNMENT, pixel_unpack_align);
+    }
   }
 }
 

@@ -8,8 +8,8 @@ namespace fastware {
 struct key_state_t {
   uint8_t current_key_states[512];
   uint8_t previous_key_states[512];
-  input::mod_bits current_mods;
-  input::mod_bits previous_mods;
+  input::mod_bits_e current_mods;
+  input::mod_bits_e previous_mods;
 };
 
 enum class event_type_t {
@@ -65,28 +65,28 @@ struct window_close_t {};
 struct window_take_focus_t {};
 struct window_hit_test_t {};
 struct window_key_t {
-  input::key keycode;
-  input::mod_bits modifiers;
-  input::action action;
-  toggle repeat;
+  input::key_e keycode;
+  input::mod_bits_e modifiers;
+  input::action_e action;
+  toggle_e repeat;
 };
 struct window_mouse_move_t {
   int32_t x;
   int32_t y;
   int32_t relx;
   int32_t rely;
-  input::mouse_button_bits button;
+  input::mouse_button_bits_e button;
 };
 struct window_mouse_wheel_t {
   int32_t x;
   int32_t y;
-  input::mouse_wheel_direction direction;
+  input::mouse_wheel_direction_e direction;
 };
 struct window_mouse_button_t {
-  input::mouse_button_bits button;
-  input::action action;
-  input::mod_bits modifiers;
-  input::mouse_click_count clicks;
+  input::mouse_button_bits_e button;
+  input::action_e action;
+  input::mod_bits_e modifiers;
+  input::mouse_click_count_e clicks;
   int32_t x;
   int32_t y;
 };

@@ -59,13 +59,14 @@ set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fno-omit-frame-pointer -std=c++17 -fno-rtti -fno-exceptions -Wl,--build-id")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fno-omit-frame-pointer -std=c++23 -fno-rtti -fno-exceptions -Wl,--build-id")
 
 include_directories(3rd/googletest/googletest/include)
 include_directories(3rd/benchmark/include)
 include_directories(3rd/glew/include)
 include_directories(3rd/SDL2/include)
 include_directories(3rd/cglm/include)
+include_directories(3rd/freetype/include)
 
 
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -78,6 +79,7 @@ add_subdirectory(3rd/benchmark)
 add_subdirectory(3rd/glew/build/cmake)
 add_subdirectory(3rd/SDL2)
 add_subdirectory(3rd/cglm)
+add_subdirectory(3rd/freetype)
 add_subdirectory(common)
 add_subdirectory(memory)
 add_subdirectory(logger)
@@ -87,10 +89,10 @@ add_subdirectory(renderer)
 add_subdirectory(window)
 
 
-SET(GL_LIBS ${OPENGL_LIBRARY} glew_s SDL2)
+SET(GL_LIBS ${OPENGL_LIBRARY} glew_s SDL2 freetype)
 
 message("LIBRARIES: ${GL_LIBS}")
 
-add_subdirectory(TowerDefenceGame)
+add_subdirectory(game_app)
 
 

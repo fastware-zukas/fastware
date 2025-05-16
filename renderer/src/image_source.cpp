@@ -13,19 +13,19 @@ image_data load(const byte *raw_bytes, uint32_t length) {
   byte *data =
       stbi_load_from_memory(raw_bytes, length, &width, &height, &components, 0);
 
-  graphics::texture_format format;
+  graphics::texture_format_e format;
   switch (components) {
   case 1:
-    format = graphics::texture_format::R8;
+    format = graphics::texture_format_e::R8;
     break;
   case 2:
-    format = graphics::texture_format::RG8;
+    format = graphics::texture_format_e::RG8;
     break;
   case 3:
-    format = graphics::texture_format::RGB8;
+    format = graphics::texture_format_e::RGB8;
     break;
   default:
-    format = graphics::texture_format::RGBA8;
+    format = graphics::texture_format_e::RGBA8;
     break;
   }
 

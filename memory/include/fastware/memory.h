@@ -11,6 +11,27 @@ constexpr size_t Kb{1024};
 constexpr size_t Mb{1024 * Kb};
 constexpr size_t Gb{1024 * Mb};
 
+struct address {
+  union {
+    void *raw;
+    uintptr_t idx;
+  };
+
+  inline friend address operator+(address addr, int64_t size) {
+    return address{.idx = addr.idx + size};
+  }
+
+  inline friend address operator-(address addr, int64_t size) {
+    return address{.idx = addr.idx - size};
+  }
+
+  inline friend uint64_t operator-(address lhs, address rhs) {
+    return lhs.idx - rhs.idx;
+  }
+
+  operator void *() const { return raw; }
+};
+
 struct alignment_t {
   enum value : uint64_t {
     b4 = 4,

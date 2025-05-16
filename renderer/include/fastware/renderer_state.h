@@ -61,7 +61,7 @@ enum renderer_depth_func {
 
 struct renderer_change_state {
   renderer_state state_change;
-  toggle status;
+  toggle_e status;
 };
 
 struct renderer_change_blend_func {

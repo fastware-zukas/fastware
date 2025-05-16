@@ -25,7 +25,7 @@ uint32_t create_bounding_box_vao(mat4_t *matrixes, uint32_t count,
        .data = indexes},
       {.target = buffer_target_e::ARRAY_BUFFER,
        .type = buffer_type_e::DYNAMIC,
-       .size = size_of<mat4_t, uint32_t>() * count,
+       .size = size_of<uint32_t, mat4_t>() * count,
        .data = matrixes}};
 
   uint32_t buffers[3]{0};
@@ -48,7 +48,7 @@ uint32_t create_bounding_box_vao(mat4_t *matrixes, uint32_t count,
 
   *update_buffer = {.buffer_id = buffers[2],
                     .offset = 0,
-                    .size = size_of<mat4_t, uint32_t>() * count,
+                    .size = size_of<uint32_t, mat4_t>() * count,
                     .data = matrixes};
 
   return vert_id;

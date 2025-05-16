@@ -10,7 +10,7 @@ struct image_data {
   byte *bytes;
   uint32_t width;
   uint32_t height;
-  graphics::texture_format format;
+  graphics::texture_format_e format;
 };
 
 image_data load(const byte *raw_bytes, uint32_t length);

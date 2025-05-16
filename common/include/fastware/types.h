@@ -1,18 +1,18 @@
 #ifndef COMMON_TYPES_H
 #define COMMON_TYPES_H
 
-#include "fastware_def.h"
 #include <cglm/cglm.h>
 #include <cglm/struct.h>
+#include <fastware/fastware_def.h>
 
 namespace fastware {
 
 using byte = u_char;
-enum class toggle { OFF = 0, ON = 1, SELECTIVE = -1 };
+enum class toggle_e { OFF = 0, ON = 1, SELECTIVE = -1 };
 
 namespace input {
 
-enum class key {
+enum class key_e {
   KEY_UNKNOWN = 0,
 
   /**
@@ -372,7 +372,7 @@ enum class key {
   KEY_AUDIOFASTFORWARD = 286,
 };
 
-enum class mod_bits {
+enum class mod_bits_e {
   NONE = 0x0000,
   LSHIFT = 0x0001,
   RSHIFT = 0x0002,
@@ -387,18 +387,18 @@ enum class mod_bits {
   MODE = 0x4000
 };
 
-mod_bits operator|(mod_bits lhs, mod_bits rhs);
-mod_bits &operator|=(mod_bits &lhs, mod_bits rhs);
+mod_bits_e operator|(mod_bits_e lhs, mod_bits_e rhs);
+mod_bits_e &operator|=(mod_bits_e &lhs, mod_bits_e rhs);
 
-mod_bits operator&(mod_bits lhs, mod_bits rhs);
-mod_bits &operator&=(mod_bits &lhs, mod_bits rhs);
+mod_bits_e operator&(mod_bits_e lhs, mod_bits_e rhs);
+mod_bits_e &operator&=(mod_bits_e &lhs, mod_bits_e rhs);
 
-mod_bits operator^(mod_bits lhs, mod_bits rhs);
-mod_bits &operator^=(mod_bits &lhs, mod_bits rhs);
+mod_bits_e operator^(mod_bits_e lhs, mod_bits_e rhs);
+mod_bits_e &operator^=(mod_bits_e &lhs, mod_bits_e rhs);
 
-mod_bits operator~(mod_bits lhs);
+mod_bits_e operator~(mod_bits_e lhs);
 
-enum class mouse_button_bits {
+enum class mouse_button_bits_e {
   BUTTON_LEFT = 1 << 0,
   BUTTON_MIDDLE = 1 << 1,
   BUTTON_RIGHT = 1 << 2,
@@ -406,19 +406,19 @@ enum class mouse_button_bits {
   BUTTON_X2 = 1 << 4
 };
 
-enum class mouse_wheel_direction { NORMAL, FLIPPED };
+enum class mouse_wheel_direction_e { NORMAL, FLIPPED };
 
-enum class mouse_click_count { SINGLE = 1, DOUBLE = 2 };
+enum class mouse_click_count_e { SINGLE = 1, DOUBLE = 2 };
 
-enum class action { RELEASE = 0, PRESS = 1 };
+enum class action_e { RELEASE = 0, PRESS = 1 };
 
-action operator~(action lhs);
+action_e operator~(action_e lhs);
 
 } // namespace input
 
 namespace graphics {
 
-enum class texture_format {
+enum class texture_format_e {
   //  Format          R     G       B       A
   R8,             // 	RED 	8
   R8_SNORM,       // 	RED 	s8
@@ -483,15 +483,20 @@ enum class texture_format {
   RGBA32UI        // 	RGBA 	ui32 	ui32 	ui32 	ui32
 };
 
-}
+enum class pixel_align_e { DEFAULT = 0, B1 = 1, B2 = 2, B4 = 4, B8 = 8 };
+} // namespace graphics
 
-constexpr int32_t value(toggle t) noexcept { return static_cast<int32_t>(t); }
+constexpr int32_t value(toggle_e t) noexcept { return static_cast<int32_t>(t); }
 
-constexpr uint32_t value(input::key t) noexcept {
+constexpr uint32_t value(input::key_e t) noexcept {
   return static_cast<uint32_t>(t);
 }
 
-constexpr uint32_t value(input::action t) noexcept {
+constexpr uint32_t value(input::action_e t) noexcept {
+  return static_cast<uint32_t>(t);
+}
+
+constexpr uint32_t value(graphics::pixel_align_e t) noexcept {
   return static_cast<uint32_t>(t);
 }
 
@@ -500,6 +505,9 @@ using vec3_t = vec3s;
 using vec4_t = vec4s;
 using mat3_t = mat3s;
 using mat4_t = mat4s;
+
+using vec2i_t = ivec2s;
+using vec3i_t = ivec3s;
 
 } // namespace fastware
 

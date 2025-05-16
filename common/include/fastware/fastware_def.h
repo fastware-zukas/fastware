@@ -8,8 +8,12 @@
 #define cpp_do_pragma(x) _Pragma(#x)
 #define todo(x) cpp_do_pragma(message("TODO - " #x))
 
-template <typename T, typename Ret> constexpr Ret size_of() {
-  return sizeof(T);
+template <typename Ret, typename T> constexpr Ret size_of() {
+  return static_cast<Ret>(sizeof(T));
+}
+
+template <typename Ret, typename T> constexpr Ret cast(T t) {
+  return static_cast<Ret>(t);
 }
 
 #define CAT_(a, b) a##b

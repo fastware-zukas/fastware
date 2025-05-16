@@ -11,36 +11,15 @@
 namespace fastware {
 namespace memory {
 
-struct memory_address {
-  union {
-    void *raw;
-    uintptr_t idx;
-  };
-
-  friend memory_address operator+(memory_address address, int64_t size) {
-    return memory_address{.idx = address.idx + size};
-  }
-
-  friend memory_address operator-(memory_address address, int64_t size) {
-    return memory_address{.idx = address.idx - size};
-  }
-
-  friend uint64_t operator-(memory_address lhs, memory_address rhs) {
-    return lhs.idx - rhs.idx;
-  }
-
-  operator void *() { return raw; }
-};
-
 struct allocator_t {};
 
 enum class alloc_type_e : uint64_t { none = 0, stack, pool };
 
 struct stack_allocator_t : allocator_t {
   alloc_type_e type;
-  memory_address block_start;
-  memory_address mem_space_start;
-  memory_address mem_space_end;
+  address block_start;
+  address mem_space_start;
+  address mem_space_end;
   alignment_t::value alignment;
   allocator_t *parent;
   uint64_t size;
@@ -48,16 +27,16 @@ struct stack_allocator_t : allocator_t {
 
 struct pool_allocator_t : allocator_t {
   alloc_type_e type;
-  memory_address mem_space_start;
-  memory_address mem_space_end;
+  address mem_space_start;
+  address mem_space_end;
   allocator_t *parent;
   uint64_t size;
   uint64_t block_count;
   uint64_t aligned_block_size;
   alignment_t::value alignment;
   uint64_t bit_shift;
-  memory_address *block_start;
-  memory_address control_blocks[];
+  address *block_start;
+  address control_blocks[];
 };
 
 namespace {
@@ -84,9 +63,9 @@ void internal_print_state(pool_allocator_t *alloc) {
 namespace {
 // internal functions here
 struct aligned_storage_t {
-  memory_address base_address;
+  address base_address;
   uint64_t size;
-  memory_address usable_address;
+  address usable_address;
   uint64_t usable_size;
 };
 
@@ -115,8 +94,8 @@ aligned_storage_t create_aligned_storage(aligned_storage_create_info_t *info) {
                 total_aligned_size};
   }
 
-  memory_address base_address{.raw = temp_blk.ptr};
-  memory_address usable_address = base_address + aligned_alloc_size;
+  address base_address{.raw = temp_blk.ptr};
+  address usable_address = base_address + aligned_alloc_size;
 
   uint64_t max_usable_size = temp_blk.size - aligned_alloc_size;
   uint64_t usable_size = aligned_mem_space_size;
@@ -161,12 +140,11 @@ memblk internal_alloc(pool_allocator_t *alloc, uint64_t size) {
     return {nullptr, 0};
   }
 
-  memory_address *next_block =
-      static_cast<memory_address *>(alloc->block_start->raw);
-  const uint64_t address_diff = memory_address{.raw = alloc->block_start} -
-                                memory_address{.raw = alloc->control_blocks};
+  address *next_block = static_cast<address *>(alloc->block_start->raw);
+  const uint64_t address_diff = address{.raw = alloc->block_start} -
+                                address{.raw = alloc->control_blocks};
   const uint64_t address_shift = address_diff << alloc->bit_shift;
-  const memory_address offset_address = alloc->mem_space_start + address_shift;
+  const address offset_address = alloc->mem_space_start + address_shift;
 
   alloc->block_start = next_block;
 
@@ -199,13 +177,11 @@ void internal_dealloc(pool_allocator_t *alloc, memblk blk) {
   printf("internal_dealloc(pool_allocator_t*) - before\n");
   internal_print_state(alloc);
 #endif
-  const memory_address block{.raw = blk.ptr};
+  const address block{.raw = blk.ptr};
   const uint64_t mem_blk_diff = block - alloc->mem_space_start;
-  const memory_address control_block_addr =
-      memory_address{.raw = alloc->control_blocks} +
-      (mem_blk_diff >> alloc->bit_shift);
-  memory_address *control_block =
-      static_cast<memory_address *>(control_block_addr.raw);
+  const address control_block_addr = address{.raw = alloc->control_blocks} +
+                                     (mem_blk_diff >> alloc->bit_shift);
+  address *control_block = static_cast<address *>(control_block_addr.raw);
   control_block->raw = alloc->block_start;
   alloc->block_start = control_block;
 #ifdef FASTWARE_VERBOSE
@@ -278,8 +254,7 @@ allocator_t *create(pool_alloc_create_info_t *info) {
   assert(pow_of_2(aligned_block_size) && "Block size can only be a power of 2");
 
   const uint64_t alloc_space_size = aligned_block_size * info->block_count;
-  const uint64_t control_block_size =
-      sizeof(memory_address) * info->block_count;
+  const uint64_t control_block_size = sizeof(address) * info->block_count;
   const uint64_t allocator_size = sizeof(pool_allocator_t) + control_block_size;
 
   aligned_storage_create_info_t storage_info{
@@ -290,8 +265,8 @@ allocator_t *create(pool_alloc_create_info_t *info) {
   pool_allocator_t *alloc =
       static_cast<pool_allocator_t *>(storage.base_address.raw);
 
-  const uint64_t bit_shift = __builtin_ctzl(aligned_block_size) -
-                             __builtin_ctzl(sizeof(memory_address));
+  const uint64_t bit_shift =
+      __builtin_ctzl(aligned_block_size) - __builtin_ctzl(sizeof(address));
 
   alloc->type = alloc_type_e::pool;
   alloc->mem_space_start = storage.usable_address;

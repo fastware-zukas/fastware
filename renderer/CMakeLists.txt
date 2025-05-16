@@ -9,6 +9,7 @@ file(GLOB SOURCES
 include_directories(./include)
 include_directories(../)
 include_directories(../3rd/stb)
+include_directories(../3rd/freetime/include)
 include_directories(../common/include)
 include_directories(../memory/include)
 include_directories(../logger/include)
