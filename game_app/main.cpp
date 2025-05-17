@@ -7,7 +7,9 @@
 #include <fastware/memory.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <random>
 
 #include <fastware/bounding.h>
@@ -19,11 +21,12 @@
 #include <fastware/renderer.h>
 #include <fastware/renderer_state.h>
 #include <fastware/stopwatch.h>
+#include <fastware/text.h>
 #include <fastware/types.h>
 #include <fastware/utils.h>
 
-#include "game_setup.h"
-#include "geometry.h"
+#include <game_setup.h>
+#include <geometry.h>
 
 template <typename T> struct allocator {
   static T *alloc(fastware::memory::allocator_t *alloc) {
@@ -81,6 +84,48 @@ int main() {
 
   debug_init();
   ws.frame_limiter(toggle_e::OFF);
+
+  setup::shader_source text_shaders[]{
+      {.filename = "shaders/text.vert", .type = shader_type_e::VERTEX},
+      {.filename = "shaders/text.frag", .type = shader_type_e::FRAGMENT}};
+
+  const uint32_t text_prog_id =
+      setup::create_program(alloc.root_alloc, text_shaders, 2);
+
+  create_text_atlas_info_t atlas_info{.alloc = alloc.root_alloc,
+                                      .font_file = "fonts/ttf_FreeSans.ttf"};
+
+  text_atlas_t atlas;
+  text::create_atlas(&atlas_info, 1, &atlas);
+
+  param_info_t text_param_infos[2]{
+      {parameter_type_e::WRAP_S, wrap_e::CLAMP_TO_EDGE},
+      {parameter_type_e::WRAP_T, wrap_e::CLAMP_TO_EDGE}};
+  sampler_create_info_t text_sampler_info{2, text_param_infos};
+  uint32_t text_sampler_id = 0;
+  sampler::create(&text_sampler_info, 1, &text_sampler_id);
+
+  program::select(text_prog_id);
+
+  uint32_t text_texture_bind_location = 0;
+  texture::bind(text_texture_bind_location, 1, &atlas.texture_id);
+  sampler::bind(text_texture_bind_location, 1, &text_sampler_id);
+
+  uniform::set_sampler_value(text_prog_id, 11, text_texture_bind_location);
+
+  program::select(0);
+
+  uint32_t text_max_lengths[]{64};
+  text_buffer_t text_buffer;
+  text::create_buffers(text_max_lengths, 1, &text_buffer);
+
+  entity text_entity{.program_id = text_prog_id,
+                     .varray_id = text_buffer.varray_id,
+                     .offset = 0,
+                     .count = 0,
+                     .instance_count = 1,
+                     .primitive_type = primitive_type_e::TRIANGLES,
+                     .render_type = entity::INDEX};
 
   setup::shader_source shaders[]{
       {.filename = "shaders/basic2.vert", .type = shader_type_e::VERTEX},
@@ -239,13 +284,6 @@ int main() {
   uniform::set_value(e.program_id, 14, 1200.f);
   uniform::set_value(e.program_id, 15, control.mode);
 
-  renderer_change state[]{{{DEPTH_TEST, toggle_e::ON}},
-                          {{CULL_FACE, toggle_e::ON}},
-                          {{DEPTH_TEST_FUNC, LESS}},
-                          {{CULL_FACE_FUNC, BACK}}};
-
-  execute_renderer_change(state, 4);
-
   clock::init();
   clock::set_game_speed(1);
 
@@ -291,25 +329,68 @@ int main() {
       METRIC(BeginFrame);
       renderer::begin_frame();
     }
+    // {
+    //   renderer_change state[]{{.state = {DEPTH_TEST, toggle_e::ON}},
+    //                           {.state = {CULL_FACE, toggle_e::ON}},
+    //                           {.state = {BLEND, toggle_e::OFF}},
+    //                           {.depth_func = {DEPTH_TEST_FUNC, LESS}},
+    //                           {.cull_face_func = {CULL_FACE_FUNC, BACK}}};
+
+    //   execute_renderer_change(state, 5);
+    // }
+    // {
+    //   METRIC(RenderObject);
+
+    //   uniform::set_value(e.program_id, 10, PV);
+    //   uniform::set_value(e.program_id, 15, control.mode);
+
+    //   buffer::update(&gpu_matrix_buffer_update[0], 1);
+
+    //   renderer::render_targets(&e, 1);
+    // }
+    // if (control.show_bounding_box) {
+
+    //   METRIC(RenderBoundBox);
+
+    //   uniform::set_value(bounding_e[0].program_id, 7, PV);
+
+    //   buffer::update(&bounding_box_update_buffer, 1);
+
+    //   renderer::render_targets(bounding_e, 3);
+    // }
     {
-      METRIC(RenderObject);
+      METRIC(RenderText);
 
-      uniform::set_value(e.program_id, 10, PV);
-      uniform::set_value(e.program_id, 15, control.mode);
+      char tmpbuff[64];
+      const int32_t len =
+          snprintf(tmpbuff, sizeof(tmpbuff), "%u fps",
+                   cast<int32_t>(1000000000 / clock::system_time_delta()));
 
-      buffer::update(&gpu_matrix_buffer_update[0], 1);
+      update_text_buffer_info_t update_text_info{
+          .array_buffer_id = text_buffer.array_buffer,
+          .element_buffer_id = text_buffer.index_buffer,
+          .atlas = &atlas,
+          .text = tmpbuff,
+          .length = len > 0 ? cast<uint32_t>(len) : 0,
+          .pos = vec2_t{-1, -1},
+          .size = 0.0005f};
+      text::update_buffers(alloc.root_alloc, &update_text_info, 1,
+                           &text_entity.count);
 
-      renderer::render_targets(&e, 1);
-    }
-    if (control.show_bounding_box) {
+      renderer_change rcstate[]{
+          {.state = {BLEND, toggle_e::ON}},
+          {.blend_func = {BLEND_FUNC, SRC_ALPHA, ONE_MINUS_SRC_ALPHA}}};
 
-      METRIC(RenderBoundBox);
+      execute_renderer_change(rcstate, 2);
+      program::select(text_prog_id);
 
-      uniform::set_value(bounding_e[0].program_id, 7, PV);
+      uint32_t text_texture_bind_location = 0;
+      texture::bind(text_texture_bind_location, 1, &atlas.texture_id);
+      sampler::bind(text_texture_bind_location, 1, &text_sampler_id);
 
-      buffer::update(&bounding_box_update_buffer, 1);
+      uniform::set_sampler_value(text_prog_id, 11, text_texture_bind_location);
 
-      renderer::render_targets(bounding_e, 3);
+      renderer::render_targets(&text_entity, 1);
     }
     {
       METRIC(SubmitFrame);

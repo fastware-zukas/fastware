@@ -149,8 +149,7 @@ void buffer::create(const buffer_create_info_t *infos, uint32_t count,
                     uint32_t *buffer_ids) {
   glCreateBuffers(static_cast<GLsizei>(count), buffer_ids);
   for (int32_t i = 0, c = static_cast<int32_t>(count); i < c; ++i) {
-    glBindBuffer(select(infos[i].target), buffer_ids[i]);
-    GLCALL(glBufferData, select(infos[i].target),
+    GLCALL(glNamedBufferData, buffer_ids[i],
            static_cast<GLsizei>(infos[i].size), infos[i].data,
            select(infos[i].type));
   }
@@ -290,7 +289,10 @@ uint32_t program::create(const fastware::shader_source_t *shaders,
         fastware::logger::log(
             "Failed to compile shader\n%s\nCompile error: %s\n", s.glsl_source,
             error);
+        printf("File: %s\n%s\n", s.glsl_source, error);
       }
+      glDeleteProgram(program_id);
+      printf("Exit with error: C1\n");
       exit(1);
     } else {
       glAttachShader(program_id, shader_id);
@@ -308,8 +310,10 @@ uint32_t program::create(const fastware::shader_source_t *shaders,
       char error[2048]{0};
       glGetProgramInfoLog(program_id, logLength, nullptr, error);
       fastware::logger::log("Program link error: %s\n", error);
+      printf("%s\n", error);
     }
     glDeleteProgram(program_id);
+    printf("Exit with error: C2\n");
     exit(1);
   }
 
@@ -678,7 +682,7 @@ static void set_params(uint32_t texture_id, const param_info_t *params,
 
 void texture::create_2d(const texture_create_info_t *infos, uint32_t count,
                         uint32_t *tex_ids) {
-  GLCALL(glCreateTextures, GL_TEXTURE_2D, 1, tex_ids);
+  GLCALL(glCreateTextures, GL_TEXTURE_2D, count, tex_ids);
 
   int32_t pixel_pack_align;
   glGetIntegerv(GL_PACK_ALIGNMENT, &pixel_pack_align);
@@ -702,8 +706,14 @@ void texture::create_2d(const texture_create_info_t *infos, uint32_t count,
                                            tex.param_info_count);
     GLCALL(glTextureStorage2D, texture_id, 1, convert(tex.format).first,
            tex.width, tex.height);
-    GLCALL(glTextureSubImage2D, texture_id, 0, 0, 0, tex.width, tex.height,
-           convert(tex.format).second, GL_UNSIGNED_BYTE, tex.data);
+    for (uint32_t n = 0, offset = 0; n < tex.sub_texture_count; n++) {
+
+      const subtexture_create_info_t &sub = tex.sub_texture[n];
+      GLCALL(glTextureSubImage2D, texture_id, 0, offset, 0, sub.width,
+             sub.height, convert(sub.format).second, GL_UNSIGNED_BYTE,
+             sub.data);
+      offset += sub.width;
+    }
 
     GLCALL(glGenerateTextureMipmap, texture_id);
 

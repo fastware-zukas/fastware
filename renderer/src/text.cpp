@@ -2,6 +2,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <freetype/ftbitmap.h>
 
 #include <fastware/maths.h>
 #include <fastware/utils.h>
@@ -23,8 +24,10 @@ void create_atlas(const create_text_atlas_info_t *infos, uint32_t count,
     const create_text_atlas_info_t &info = infos[i];
 
     FT_Face face;
-    if (FT_New_Face(ft, info.font_file, 0, &face)) {
+    if (FT_Error error = FT_New_Face(ft, info.font_file, 0, &face); error) {
       // error
+      printf("font error: %s | %s\n", info.font_file, FT_Error_String(error));
+      exit(1);
       continue;
     }
 
@@ -35,32 +38,63 @@ void create_atlas(const create_text_atlas_info_t *infos, uint32_t count,
     uint32_t max_width = 0;
     uint32_t max_height = 0;
 
-    memory::stack_alloc_create_info_t meminfo{.parent = info.alloc,
-                                              .size = memory::Mb,
-                                              .alignment =
-                                                  memory::alignment_t::b16};
-    memory::allocator_t *local = memory::create(&meminfo);
+    subtexture_create_info_t sub_infos[128];
 
-    memory::memblk blk = memory::allocate(local, memory::Mb);
-
-    byte *buffer = static_cast<byte *>(blk.ptr);
+    FT_Bitmap bitmaps[128];
 
     for (uint32_t c = 0; c < 128; c++) {
-      if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+      if (FT_Error error = FT_Load_Char(face, c, FT_LOAD_RENDER); error) {
         // error
+        printf("char error: %c | %s\n", c, FT_Error_String(error));
+        exit(1);
         continue;
       }
-      memccpy(buffer + max_width, face->glyph->bitmap.buffer, 0,
-              face->glyph->bitmap.width);
-      max_width += face->glyph->bitmap.width;
+
+      subtexture_create_info_t &sub = sub_infos[c];
+
+      FT_Bitmap_Init(&bitmaps[c]);
+      FT_Bitmap_Copy(ft, &face->glyph->bitmap, &bitmaps[c]);
+
+      sub.width = bitmaps[c].width;
+      sub.height = bitmaps[c].rows;
+      sub.data = bitmaps[c].buffer;
+      sub.format = graphics::texture_format_e::R8;
+
+      max_width += bitmaps[c].width;
       max_height = fast_max(max_height, face->glyph->bitmap.rows);
     }
 
+    param_info_t param_infos[]{
+        param_info_t{.type = parameter_type_e::WRAP_S,
+                     .wrap = wrap_e::CLAMP_TO_EDGE},
+        param_info_t{.type = parameter_type_e::WRAP_T,
+                     .wrap = wrap_e::CLAMP_TO_EDGE},
+        param_info_t{.type = parameter_type_e::MIN_FILTER,
+                     .min_filter = min_filter_e::LINEAR_MIPMAP_LINEAR},
+        param_info_t{.type = parameter_type_e::MAG_FILTER,
+                     .mag_filter = mag_filter_e::LINEAR}};
+
+    texture_create_info_t text_info{.width = max_width,
+                                    .height = max_height,
+                                    .format = graphics::texture_format_e::R8,
+                                    .pixel_unpack_align =
+                                        graphics::pixel_align_e::B1,
+                                    .param_infos = param_infos,
+                                    .sub_texture = sub_infos,
+                                    .param_info_count = 4,
+                                    .sub_texture_count = 128};
+
+    texture::create_2d(&text_info, 1, &atlas.texture_id);
+
     for (uint32_t c = 0, offset = 0; c < 128; c++) {
-      if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+      if (FT_Error error = FT_Load_Char(face, c, FT_LOAD_RENDER); error) {
         // error
+        printf("char error: %c, %u | %s\n", c, offset, FT_Error_String(error));
+        exit(1);
         continue;
       }
+
+      FT_Bitmap_Done(ft, &bitmaps[c]);
 
       character_t &ch = atlas.chars[c];
 
@@ -82,30 +116,8 @@ void create_atlas(const create_text_atlas_info_t *infos, uint32_t count,
       offset += face->glyph->bitmap.width;
     }
 
-    param_info_t param_infos[]{
-        param_info_t{.type = parameter_type_e::WRAP_S,
-                     .wrap = wrap_e::CLAMP_TO_EDGE},
-        param_info_t{.type = parameter_type_e::WRAP_T,
-                     .wrap = wrap_e::CLAMP_TO_EDGE},
-        param_info_t{.type = parameter_type_e::MIN_FILTER,
-                     .min_filter = min_filter_e::LINEAR_MIPMAP_LINEAR},
-        param_info_t{.type = parameter_type_e::MAG_FILTER,
-                     .mag_filter = mag_filter_e::LINEAR}};
-
-    texture_create_info_t text_info{.width = max_width,
-                                    .height = max_height,
-                                    .format = graphics::texture_format_e::R8,
-                                    .pixel_unpack_align =
-                                        graphics::pixel_align_e::B1,
-                                    .param_info_count = 4,
-                                    .data = buffer,
-                                    .param_infos = param_infos};
-
-    texture::create_2d(&text_info, 1, &atlas.texture_id);
     atlas.width = max_width;
     atlas.height = max_height;
-
-    memory::destroy(local);
 
     FT_Done_Face(face);
   }
@@ -121,6 +133,10 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
 
     const uint32_t length = lengths[i];
 
+    printf("Length: %u, Array(L): %u, Index(L): %u\n", length,
+           size_of<uint32_t, vec2_t>() * 12 * length,
+           size_of<uint32_t, uint32_t>() * 6 * length);
+
     const buffer_create_info_t buffer_infos[]{
         {.target = buffer_target_e::ARRAY_BUFFER,
          .type = buffer_type_e::DYNAMIC,
@@ -135,6 +151,9 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
     buffer::create(buffer_infos, 2, buffers);
     txt_buffer.array_buffer = buffers[0];
     txt_buffer.index_buffer = buffers[1];
+
+    printf("created text buffers, array_buffer: %u, index_buffer: %u\n",
+           txt_buffer.array_buffer, txt_buffer.index_buffer);
 
     constexpr vertex_buffer_section_definition_t vbuffer_section_info[3]{
         {.type = data_type_e::FLOAT_VECTOR2, .normalize = normalize_e::NO},
@@ -154,11 +173,14 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
         .index_buffer_id = txt_buffer.index_buffer};
 
     varray::create(&varray_info, 1, &txt_buffer.varray_id);
+
+    printf("created text varray: %u\n", txt_buffer.varray_id);
   }
 }
 
 void update_buffers(memory::allocator_t *allocator,
-                    const update_text_buffer_info_t *infos, uint32_t count) {
+                    const update_text_buffer_info_t *infos, uint32_t count,
+                    uint32_t *index_sizes) {
 
   memory::stack_alloc_create_info_t alloc_info{.parent = allocator,
                                                .size = memory::Mb * 1,
@@ -180,11 +202,16 @@ void update_buffers(memory::allocator_t *allocator,
   for (uint32_t i = 0; i < count; i++) {
     const update_text_buffer_info_t &info = infos[i];
 
-    const int32_t section_len = sizeof(vec2_t) * 4 * info.length;
+    const uint32_t section_len = sizeof(vec2_t) * 4 * info.length;
+    const uint32_t index_len = sizeof(uint32_t) * 6 * info.length;
+
+    index_sizes[i] = index_len;
+
+    printf("Text: %s, Length: %u, Section(L): %u, Index(L): %u\n", info.text,
+           info.length, section_len, index_len);
 
     memory::memblk blk_vert = memory::allocate(alloc, section_len * 3);
-    memory::memblk blk_elem =
-        memory::allocate(alloc, sizeof(uint32_t) * 6 * info.length);
+    memory::memblk blk_elem = memory::allocate(alloc, index_len);
 
     vec2_t *vert_data = cast<vec2_t *>(blk_vert.ptr);
     vec2_t *orig_data =
@@ -207,11 +234,11 @@ void update_buffers(memory::allocator_t *allocator,
       char c = info.text[n];
       const character_t &ch = info.atlas->chars[c];
 
-      float_t x = ch.bearing.x * scale + pos_x;
+      float_t x = pos_x + ch.bearing.x * scale;
       float_t y = pos_y - (ch.size.y - ch.bearing.y) * scale;
       float_t w = ch.size.x * scale;
       float_t h = ch.size.y * scale;
-      float_t margin = 0.00005f;
+      float_t margin = 0.00002f;
 
       vert_data[n1] = rotate(info.pos, {x, y + h}, info.rotation);
       vert_data[n2] = rotate(info.pos, {x, y}, info.rotation);
@@ -241,11 +268,11 @@ void update_buffers(memory::allocator_t *allocator,
     buffer_update_info_t update_infos[2]{
         buffer_update_info_t{.buffer_id = info.array_buffer_id,
                              .offset = 0,
-                             .size = cast<uint32_t>(blk_vert.size),
+                             .size = section_len * 3,
                              .data = vert_data},
         buffer_update_info_t{.buffer_id = info.element_buffer_id,
                              .offset = 0,
-                             .size = cast<uint32_t>(blk_elem.size),
+                             .size = index_len,
                              .data = idx_data}};
 
     buffer::update(update_infos, 2);

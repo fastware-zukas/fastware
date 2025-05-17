@@ -16,7 +16,8 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
                     text_buffer_t *results);
 
 void update_buffers(memory::allocator_t *allocator,
-                    update_text_buffer_info_t *infos, uint32_t count);
+                    const update_text_buffer_info_t *infos, uint32_t count,
+                    uint32_t *index_sizes);
 
 } // namespace text
 

@@ -14,6 +14,10 @@ file(GLOB TEXTURES
     "textures/*"
 )
 
+file(GLOB FONTS
+    "fonts/*"
+)
+
 include_directories(.)
 include_directories(../)
 include_directories(../common/include)
@@ -52,5 +56,13 @@ add_custom_command(
     ${CMAKE_CURRENT_SOURCE_DIR}/textures
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/textures
 )
+
+add_custom_command(
+    TARGET copy PRE_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/fonts
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/fonts
+)
+
 
 add_dependencies(${PROJECT_NAME} copy)

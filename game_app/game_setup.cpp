@@ -68,14 +68,20 @@ uint32_t create_texture(memory::allocator_t *allocator, const char *filename) {
   uint8_t *img_data = static_cast<uint8_t *>(img.bytes);
   std::reverse(img_data, img_data + (img.width + img.height));
 
-  texture_create_info_t texture_info{img.width,
-                                     img.height,
-                                     img.format,
-                                     graphics::pixel_align_e::DEFAULT,
-                                     graphics::pixel_align_e::DEFAULT,
-                                     2,
-                                     img_data,
-                                     param_infos};
+  subtexture_create_info_t sub_texture{.width = img.width,
+                                       .height = img.height,
+                                       .format = img.format,
+                                       .data = img_data};
+
+  texture_create_info_t texture_info{.width = img.width,
+                                     .height = img.height,
+                                     .format = img.format,
+                                     .param_infos = param_infos,
+                                     .sub_texture = &sub_texture,
+                                     .param_info_count = 2,
+                                     .sub_texture_count = 1
+
+  };
 
   uint32_t texture_id = 0;
 

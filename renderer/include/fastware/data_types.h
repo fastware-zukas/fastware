@@ -185,15 +185,23 @@ struct param_info_t {
   };
 };
 
+struct subtexture_create_info_t {
+  uint32_t width{0};
+  uint32_t height{0};
+  graphics::texture_format_e format{graphics::texture_format_e::RGBA8};
+  const void *data{nullptr};
+};
+
 struct texture_create_info_t {
   uint32_t width{0};
   uint32_t height{0};
   graphics::texture_format_e format{graphics::texture_format_e::RGBA8};
   graphics::pixel_align_e pixel_pack_align{graphics::pixel_align_e::DEFAULT};
   graphics::pixel_align_e pixel_unpack_align{graphics::pixel_align_e::DEFAULT};
-  uint32_t param_info_count{0};
-  const void *data{nullptr};
   const param_info_t *param_infos{nullptr};
+  const subtexture_create_info_t *sub_texture{nullptr};
+  uint32_t param_info_count{0};
+  uint32_t sub_texture_count{0};
 };
 
 struct sampler_create_info_t {

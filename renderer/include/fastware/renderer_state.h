@@ -87,12 +87,6 @@ struct renderer_change {
     renderer_change_cull_face_func cull_face_func;
     renderer_change_depth_func depth_func;
   };
-
-  renderer_change(renderer_change_state &&rcs) : state(rcs) {}
-  renderer_change(renderer_change_blend_func &&rcbf) : blend_func(rcbf) {}
-  renderer_change(renderer_change_cull_face_func &&rccff)
-      : cull_face_func(rccff) {}
-  renderer_change(renderer_change_depth_func &&rcdf) : depth_func(rcdf) {}
 };
 
 void execute_renderer_change(const renderer_change *change_array,
