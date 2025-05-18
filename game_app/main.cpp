@@ -18,6 +18,7 @@
 #include <fastware/debug.h>
 #include <fastware/entity.h>
 #include <fastware/image_source.h>
+#include <fastware/maths.h>
 #include <fastware/renderer.h>
 #include <fastware/renderer_state.h>
 #include <fastware/stopwatch.h>
@@ -115,7 +116,7 @@ int main() {
 
   program::select(0);
 
-  uint32_t text_max_lengths[]{64};
+  uint32_t text_max_lengths[]{128};
   text_buffer_t text_buffer;
   text::create_buffers(text_max_lengths, 1, &text_buffer);
 
@@ -274,7 +275,7 @@ int main() {
 
   program::select(e.program_id);
 
-  uint32_t texture_bind_location = 0;
+  uint32_t texture_bind_location = 1;
   texture::bind(texture_bind_location, 1, &texture_id);
   sampler::bind(texture_bind_location, 1, &sampler_id);
 
@@ -295,6 +296,9 @@ int main() {
       .projection = glms_perspective(glm_rad(60.f),
                                      float(info.width) / float(info.height),
                                      0.01f, 2000.0f)};
+
+  uint64_t frames_dur = 1000000000 - 1;
+  uint64_t frame_idx = 29;
 
   while (control.main_window_id != 0) {
 
@@ -329,53 +333,70 @@ int main() {
       METRIC(BeginFrame);
       renderer::begin_frame();
     }
-    // {
-    //   renderer_change state[]{{.state = {DEPTH_TEST, toggle_e::ON}},
-    //                           {.state = {CULL_FACE, toggle_e::ON}},
-    //                           {.state = {BLEND, toggle_e::OFF}},
-    //                           {.depth_func = {DEPTH_TEST_FUNC, LESS}},
-    //                           {.cull_face_func = {CULL_FACE_FUNC, BACK}}};
+    {
+      renderer_change state[]{{.state = {DEPTH_TEST, toggle_e::ON}},
+                              {.state = {CULL_FACE, toggle_e::ON}},
+                              {.state = {BLEND, toggle_e::OFF}},
+                              {.depth_func = {DEPTH_TEST_FUNC, LESS}},
+                              {.cull_face_func = {CULL_FACE_FUNC, BACK}}};
 
-    //   execute_renderer_change(state, 5);
-    // }
-    // {
-    //   METRIC(RenderObject);
+      execute_renderer_change(state, 5);
+    }
+    {
+      METRIC(RenderObject);
 
-    //   uniform::set_value(e.program_id, 10, PV);
-    //   uniform::set_value(e.program_id, 15, control.mode);
+      uniform::set_value(e.program_id, 10, PV);
+      uniform::set_value(e.program_id, 15, control.mode);
 
-    //   buffer::update(&gpu_matrix_buffer_update[0], 1);
+      buffer::update(&gpu_matrix_buffer_update[0], 1);
 
-    //   renderer::render_targets(&e, 1);
-    // }
-    // if (control.show_bounding_box) {
+      renderer::render_targets(&e, 1);
+    }
+    if (control.show_bounding_box) {
 
-    //   METRIC(RenderBoundBox);
+      METRIC(RenderBoundBox);
 
-    //   uniform::set_value(bounding_e[0].program_id, 7, PV);
+      uniform::set_value(bounding_e[0].program_id, 7, PV);
 
-    //   buffer::update(&bounding_box_update_buffer, 1);
+      buffer::update(&bounding_box_update_buffer, 1);
 
-    //   renderer::render_targets(bounding_e, 3);
-    // }
+      renderer::render_targets(bounding_e, 3);
+    }
     {
       METRIC(RenderText);
 
-      char tmpbuff[64];
-      const int32_t len =
-          snprintf(tmpbuff, sizeof(tmpbuff), "%u fps",
-                   cast<int32_t>(1000000000 / clock::system_time_delta()));
+      mat4_t ortho =
+          glms_ortho(0, float_t(info.width), 0, float_t(info.height), 0, 1);
 
-      update_text_buffer_info_t update_text_info{
-          .array_buffer_id = text_buffer.array_buffer,
-          .element_buffer_id = text_buffer.index_buffer,
-          .atlas = &atlas,
-          .text = tmpbuff,
-          .length = len > 0 ? cast<uint32_t>(len) : 0,
-          .pos = vec2_t{-1, -1},
-          .size = 0.0005f};
-      text::update_buffers(alloc.root_alloc, &update_text_info, 1,
-                           &text_entity.count);
+      frame_idx++;
+
+      frames_dur += clock::system_time_delta();
+
+      if (frames_dur >= 1000000000) {
+
+        char tmpbuff[64];
+        const int32_t len =
+            snprintf(tmpbuff, sizeof(tmpbuff), "%lu fps", frame_idx);
+
+        update_text_buffer_info_t update_text_info{
+            .buffer = &text_buffer,
+            .atlas = &atlas,
+            .text = tmpbuff,
+            .length = cast<uint32_t>(fast_max(len, 0)),
+            .pos = vec2_t{float_t(20), float_t(info.height - 64)},
+            .size = 0.5f};
+        text::update_buffers(alloc.root_alloc, &update_text_info, 1,
+                             &text_entity.count);
+
+        printf("Index count: %u, section size: %u\n", text_entity.count,
+               text_buffer.section_size);
+
+        frame_idx = 0;
+        frames_dur = 0;
+      }
+
+      // text_entity.count = 12;
+      // text_entity.offset = 0;
 
       renderer_change rcstate[]{
           {.state = {BLEND, toggle_e::ON}},
@@ -384,11 +405,14 @@ int main() {
       execute_renderer_change(rcstate, 2);
       program::select(text_prog_id);
 
-      uint32_t text_texture_bind_location = 0;
-      texture::bind(text_texture_bind_location, 1, &atlas.texture_id);
-      sampler::bind(text_texture_bind_location, 1, &text_sampler_id);
+      uniform::set_value(text_prog_id, 10, ortho);
 
-      uniform::set_sampler_value(text_prog_id, 11, text_texture_bind_location);
+      // uint32_t text_texture_bind_location = 0;
+      // texture::bind(text_texture_bind_location, 1, &atlas.texture_id);
+      // sampler::bind(text_texture_bind_location, 1, &text_sampler_id);
+
+      // uniform::set_sampler_value(text_prog_id, 11,
+      // text_texture_bind_location);
 
       renderer::render_targets(&text_entity, 1);
     }

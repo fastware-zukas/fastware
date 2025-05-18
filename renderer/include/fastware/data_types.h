@@ -228,6 +228,7 @@ struct text_buffer_t {
   uint32_t varray_id{0};
   uint32_t array_buffer{0};
   uint32_t index_buffer{0};
+  uint32_t section_size{0};
 };
 
 struct create_text_atlas_info_t {
@@ -236,8 +237,7 @@ struct create_text_atlas_info_t {
 };
 
 struct update_text_buffer_info_t {
-  uint32_t array_buffer_id{0};
-  uint32_t element_buffer_id{0};
+  text_buffer_t *buffer{nullptr};
   text_atlas_t *atlas{nullptr};
   const char *text{nullptr};
   uint32_t length{0};

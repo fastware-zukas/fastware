@@ -4,6 +4,8 @@
 #include FT_FREETYPE_H
 #include <freetype/ftbitmap.h>
 
+#include <cassert>
+
 #include <fastware/maths.h>
 #include <fastware/utils.h>
 
@@ -132,6 +134,7 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
     text_buffer_t &txt_buffer = results[i];
 
     const uint32_t length = lengths[i];
+    const uint32_t section_size = size_of<uint32_t, vec2_t>() * 4 * length;
 
     printf("Length: %u, Array(L): %u, Index(L): %u\n", length,
            size_of<uint32_t, vec2_t>() * 12 * length,
@@ -140,7 +143,7 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
     const buffer_create_info_t buffer_infos[]{
         {.target = buffer_target_e::ARRAY_BUFFER,
          .type = buffer_type_e::DYNAMIC,
-         .size = size_of<uint32_t, vec2_t>() * 12 * length,
+         .size = section_size * 3,
          .data = nullptr},
         {.target = buffer_target_e::ELEMENT_ARRAY_BUFFER,
          .type = buffer_type_e::DYNAMIC,
@@ -151,6 +154,7 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
     buffer::create(buffer_infos, 2, buffers);
     txt_buffer.array_buffer = buffers[0];
     txt_buffer.index_buffer = buffers[1];
+    txt_buffer.section_size = section_size;
 
     printf("created text buffers, array_buffer: %u, index_buffer: %u\n",
            txt_buffer.array_buffer, txt_buffer.index_buffer);
@@ -175,6 +179,7 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
     varray::create(&varray_info, 1, &txt_buffer.varray_id);
 
     printf("created text varray: %u\n", txt_buffer.varray_id);
+    // exit(1);
   }
 }
 
@@ -183,9 +188,9 @@ void update_buffers(memory::allocator_t *allocator,
                     uint32_t *index_sizes) {
 
   memory::stack_alloc_create_info_t alloc_info{.parent = allocator,
-                                               .size = memory::Mb * 1,
+                                               .size = memory::Mb * 2,
                                                .alignment =
-                                                   memory::alignment_t::b16};
+                                                   memory::alignment_t::b64};
 
   memory::allocator_t *alloc = memory::create(&alloc_info);
 
@@ -202,27 +207,34 @@ void update_buffers(memory::allocator_t *allocator,
   for (uint32_t i = 0; i < count; i++) {
     const update_text_buffer_info_t &info = infos[i];
 
-    const uint32_t section_len = sizeof(vec2_t) * 4 * info.length;
-    const uint32_t index_len = sizeof(uint32_t) * 6 * info.length;
+    const uint32_t section_size = sizeof(vec2_t) * 4 * (info.length);
+    const uint32_t index_size = sizeof(uint32_t) * 6 * (info.length);
 
-    index_sizes[i] = index_len;
+    assert(section_size <= info.buffer->section_size);
+
+    index_sizes[i] = 6 * info.length;
 
     printf("Text: %s, Length: %u, Section(L): %u, Index(L): %u\n", info.text,
-           info.length, section_len, index_len);
+           info.length, section_size, index_size);
 
-    memory::memblk blk_vert = memory::allocate(alloc, section_len * 3);
-    memory::memblk blk_elem = memory::allocate(alloc, index_len);
+    memory::memblk blk_vert = memory::allocate(alloc, section_size);
+    memory::memblk blk_orig = memory::allocate(alloc, section_size);
+    memory::memblk blk_glyph = memory::allocate(alloc, section_size);
+    memory::memblk blk_elem = memory::allocate(alloc, index_size);
 
     vec2_t *vert_data = cast<vec2_t *>(blk_vert.ptr);
-    vec2_t *orig_data =
-        cast<vec2_t *>((memory::address{blk_vert.ptr} + section_len).raw);
-    vec2_t *glypth_data =
-        cast<vec2_t *>((memory::address{blk_vert.ptr} + section_len * 2).raw);
+    vec2_t *orig_data = cast<vec2_t *>(blk_orig.ptr);
+    vec2_t *glypth_data = cast<vec2_t *>(blk_glyph.ptr);
     uint32_t *idx_data = cast<uint32_t *>(blk_elem.ptr);
 
     float_t pos_x = info.pos.x;
     const float_t pos_y = info.pos.y;
     const float_t scale = info.size;
+
+    auto len1 = memory::address{orig_data} - memory::address{vert_data};
+    auto len2 = memory::address{glypth_data} - memory::address{orig_data};
+
+    printf("buffer length (1): %lu, (2): %lu\n", len1, len2);
 
     for (uint32_t n = 0; n < info.length; n++) {
 
@@ -240,20 +252,32 @@ void update_buffers(memory::allocator_t *allocator,
       float_t h = ch.size.y * scale;
       float_t margin = 0.00002f;
 
-      vert_data[n1] = rotate(info.pos, {x, y + h}, info.rotation);
-      vert_data[n2] = rotate(info.pos, {x, y}, info.rotation);
-      vert_data[n3] = rotate(info.pos, {x + w, y}, info.rotation);
-      vert_data[n4] = rotate(info.pos, {x + w, y + h}, info.rotation);
+      printf("current char: %c, at %u\n", c, n);
 
-      orig_data[n1] = info.pos;
-      orig_data[n2] = info.pos;
-      orig_data[n3] = info.pos;
-      orig_data[n4] = info.pos;
+      // vert_data[n1] = rotate(info.pos, {x, y + h}, info.rotation);
+      // vert_data[n2] = rotate(info.pos, {x, y}, info.rotation);
+      // vert_data[n3] = rotate(info.pos, {x + w, y}, info.rotation);
+      // vert_data[n4] = rotate(info.pos, {x + w, y + h}, info.rotation);
+
+      vert_data[n1] = {x, y + h};
+      vert_data[n2] = {x, y};
+      vert_data[n3] = {x + w, y};
+      vert_data[n4] = {x + w, y + h};
+
+      orig_data[n1] = {float(c * 2) / 256.f, float(c)};
+      orig_data[n2] = {float(c * 2) / 256.f, float(c)};
+      orig_data[n3] = {float(c * 2) / 256.f, float(c)};
+      orig_data[n4] = {float(c * 2) / 256.f, float(c)};
 
       glypth_data[n1] = {ch.top_left.x + margin, ch.top_left.y};
       glypth_data[n2] = {ch.top_left.x + margin, ch.bottom_right.y};
       glypth_data[n3] = {ch.bottom_right.x - margin, ch.bottom_right.y};
       glypth_data[n4] = {ch.bottom_right.x - margin, ch.top_left.y};
+
+      // glypth_data[n1] = {0.f, 0.f};
+      // glypth_data[n2] = {0.f, 1.f};
+      // glypth_data[n3] = {1.f, 1.f};
+      // glypth_data[n4] = {1.f, 0.f};
 
       idx_data[n * 6 + 0] = n1;
       idx_data[n * 6 + 1] = n2;
@@ -265,17 +289,25 @@ void update_buffers(memory::allocator_t *allocator,
       pos_x += (ch.advance >> 6) * scale;
     }
 
-    buffer_update_info_t update_infos[2]{
-        buffer_update_info_t{.buffer_id = info.array_buffer_id,
+    buffer_update_info_t update_infos[4]{
+        buffer_update_info_t{.buffer_id = info.buffer->array_buffer,
                              .offset = 0,
-                             .size = section_len * 3,
+                             .size = section_size,
                              .data = vert_data},
-        buffer_update_info_t{.buffer_id = info.element_buffer_id,
+        buffer_update_info_t{.buffer_id = info.buffer->array_buffer,
+                             .offset = info.buffer->section_size,
+                             .size = section_size,
+                             .data = orig_data},
+        buffer_update_info_t{.buffer_id = info.buffer->array_buffer,
+                             .offset = info.buffer->section_size * 2,
+                             .size = section_size,
+                             .data = glypth_data},
+        buffer_update_info_t{.buffer_id = info.buffer->index_buffer,
                              .offset = 0,
-                             .size = index_len,
+                             .size = index_size,
                              .data = idx_data}};
 
-    buffer::update(update_infos, 2);
+    buffer::update(update_infos, 4);
     memory::deallocate_all(alloc);
   }
 
