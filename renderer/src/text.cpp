@@ -30,7 +30,7 @@ void create_atlas(const create_text_atlas_info_t *infos, uint32_t count,
     if (FT_Error error = FT_New_Face(ft, info.font_file, 0, &face); error) {
       // error
       printf("font error: %s | %s\n", info.font_file, FT_Error_String(error));
-      exit(1);
+      assert(false);
       continue;
     }
 
@@ -49,7 +49,7 @@ void create_atlas(const create_text_atlas_info_t *infos, uint32_t count,
       if (FT_Error error = FT_Load_Char(face, c, FT_LOAD_RENDER); error) {
         // error
         printf("char error: %c | %s\n", c, FT_Error_String(error));
-        exit(1);
+        assert(false);
         continue;
       }
 
@@ -93,7 +93,7 @@ void create_atlas(const create_text_atlas_info_t *infos, uint32_t count,
       if (FT_Error error = FT_Load_Char(face, c, FT_LOAD_RENDER); error) {
         // error
         printf("char error: %c, %u | %s\n", c, offset, FT_Error_String(error));
-        exit(1);
+        assert(false);
         continue;
       }
 
@@ -180,7 +180,6 @@ void create_buffers(const uint32_t *lengths, uint32_t count,
     varray::create(&varray_info, 1, &txt_buffer.varray_id);
 
     printf("created text varray: %u\n", txt_buffer.varray_id);
-    // exit(1);
   }
 }
 

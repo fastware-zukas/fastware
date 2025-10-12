@@ -11,6 +11,22 @@ constexpr size_t Kb{1024};
 constexpr size_t Mb{1024 * Kb};
 constexpr size_t Gb{1024 * Mb};
 
+constexpr inline uint64_t next_pow_of_2(uint64_t size) {
+  size--;
+  size |= size >> 1;
+  size |= size >> 2;
+  size |= size >> 4;
+  size |= size >> 8;
+  size |= size >> 16;
+  size |= size >> 32;
+  size++;
+  return size;
+}
+
+constexpr inline bool pow_of_2(uint64_t size) {
+  return size > 0 && !(size & (size - 1));
+}
+
 struct address {
   union {
     void *raw;
@@ -47,23 +63,19 @@ struct alignment_t {
   };
   static constexpr uint64_t mask(value val) { return val - 1; }
   static constexpr value select(uint64_t alignment) {
-    alignment--;
-    alignment |= alignment >> 1;
-    alignment |= alignment >> 2;
-    alignment |= alignment >> 4;
-    alignment |= alignment >> 8;
-    alignment |= alignment >> 16;
-    alignment++;
+    alignment = next_pow_of_2(alignment);
     return static_cast<value>(alignment);
   }
 };
 
-constexpr uint64_t align(uint64_t size, alignment_t::value alignment) {
-  return (size + alignment_t::mask(alignment)) & ~alignment_t::mask(alignment);
+constexpr inline uint64_t align(uint64_t size, alignment_t::value alignment) {
+  const uint64_t value =
+      (size + alignment_t::mask(alignment)) & ~alignment_t::mask(alignment);
+  return next_pow_of_2(value);
 }
 
-constexpr bool is_aligned(const void *__restrict ptr,
-                          alignment_t::value alignment) {
+constexpr inline bool is_aligned(const void *__restrict ptr,
+                                 alignment_t::value alignment) {
   return (reinterpret_cast<uintptr_t>(ptr) & alignment_t::mask(alignment)) == 0;
 }
 

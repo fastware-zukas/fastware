@@ -78,17 +78,22 @@ struct aligned_storage_create_info_t {
 
 aligned_storage_t create_aligned_storage(aligned_storage_create_info_t *info) {
 
-  const uint64_t aligned_alloc_size =
-      align(info->allocator_size, info->alignment);
-  const uint64_t aligned_mem_space_size =
-      align(info->mem_space_size, info->alignment);
+  const uint64_t aligned_alloc_size = next_pow_of_2(info->allocator_size);
+  printf("%s:%d [allocator_size = %lu][aligned_alloc_size = %lu]\n", __FILE__,
+         __LINE__, info->allocator_size, aligned_alloc_size);
+
+  const uint64_t aligned_mem_space_size = next_pow_of_2(info->mem_space_size);
+  printf("%s:%d [mem_space_size = %lu][aligned_mem_space_size = %lu]\n",
+         __FILE__, __LINE__, info->mem_space_size, aligned_mem_space_size);
+
   const uint64_t total_aligned_size =
-      aligned_alloc_size + aligned_mem_space_size;
+      next_pow_of_2(aligned_alloc_size + aligned_mem_space_size);
+  printf("%s:%d [alignment = %lu][total_aligned_size = %lu]\n", __FILE__,
+         __LINE__, info->alignment, total_aligned_size);
 
   memblk temp_blk{nullptr, 0};
   if (info->parent) {
-    temp_blk = allocate(info->parent, total_aligned_size +
-                                          alignment_t::mask(info->alignment));
+    temp_blk = allocate(info->parent, total_aligned_size);
   } else {
     temp_blk = {aligned_alloc(info->alignment, total_aligned_size),
                 total_aligned_size};
@@ -221,9 +226,6 @@ bool internal_owns(stack_allocator_t *alloc, memblk blk) {
 bool internal_owns(pool_allocator_t *alloc, memblk blk) {
   return blk.ptr >= alloc->mem_space_start & blk.ptr < alloc->mem_space_end;
 }
-
-bool constexpr pow_of_2(uint64_t size) { return __builtin_popcount(size) == 1; }
-
 } // namespace
 
 allocator_t *create(stack_alloc_create_info_t *info) {

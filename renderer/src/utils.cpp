@@ -292,8 +292,7 @@ uint32_t program::create(const fastware::shader_source_t *shaders,
         printf("File: %s\n%s\n", s.glsl_source, error);
       }
       glDeleteProgram(program_id);
-      printf("Exit with error: C1\n");
-      exit(1);
+      assert(false);
     } else {
       glAttachShader(program_id, shader_id);
     }
@@ -313,8 +312,7 @@ uint32_t program::create(const fastware::shader_source_t *shaders,
       printf("%s\n", error);
     }
     glDeleteProgram(program_id);
-    printf("Exit with error: C2\n");
-    exit(1);
+    assert(false);
   }
 
   {

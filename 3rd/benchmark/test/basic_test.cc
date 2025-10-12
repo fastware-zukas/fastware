@@ -5,7 +5,9 @@
 
 void BM_empty(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(state.iterations());
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
+    benchmark::DoNotOptimize(iterations);
   }
 }
 BENCHMARK(BM_empty);
@@ -141,13 +143,12 @@ void BM_RangedFor(benchmark::State& state) {
 }
 BENCHMARK(BM_RangedFor);
 
-#ifdef BENCHMARK_HAS_CXX11
 template <typename T>
 void BM_OneTemplateFunc(benchmark::State& state) {
   auto arg = state.range(0);
   T sum = 0;
   for (auto _ : state) {
-    sum += arg;
+    sum += static_cast<T>(arg);
   }
 }
 BENCHMARK(BM_OneTemplateFunc<int>)->Arg(1);
@@ -159,14 +160,12 @@ void BM_TwoTemplateFunc(benchmark::State& state) {
   A sum = 0;
   B prod = 1;
   for (auto _ : state) {
-    sum += arg;
-    prod *= arg;
+    sum += static_cast<A>(arg);
+    prod *= static_cast<B>(arg);
   }
 }
 BENCHMARK(BM_TwoTemplateFunc<int, double>)->Arg(1);
 BENCHMARK(BM_TwoTemplateFunc<double, int>)->Arg(1);
-
-#endif  // BENCHMARK_HAS_CXX11
 
 // Ensure that StateIterator provides all the necessary typedefs required to
 // instantiate std::iterator_traits.

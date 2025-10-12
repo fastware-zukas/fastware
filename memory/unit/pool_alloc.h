@@ -25,7 +25,8 @@ TEST(memory, pool_allocator_aligned_alloc) {
   memblk blk = allocate(alloc, 17);
 
   ASSERT_EQ(blk.size, 32);
-  ASSERT_TRUE(is_aligned(blk.ptr, alignment_t::b32));
+  ASSERT_TRUE(fastware::memory::is_aligned(blk.ptr, alignment_t::b32));
+  ASSERT_TRUE(fastware::memory::pow_of_2(blk.size));
 
   destroy(alloc);
 }
