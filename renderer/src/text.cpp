@@ -5,6 +5,7 @@
 #include <freetype/ftbitmap.h>
 
 #include <cassert>
+#include <cmath>
 
 #include <fastware/maths.h>
 #include <fastware/utils.h>
@@ -214,8 +215,8 @@ void update_buffers(memory::allocator_t *allocator,
 
     index_sizes[i] = 6 * info.length;
 
-    printf("Text: %s, Length: %u, Section(L): %u, Index(L): %u\n", info.text,
-           info.length, section_size, index_size);
+    // printf("Text: %s, Length: %u, Section(L): %u, Index(L): %u\n", info.text,
+    //        info.length, section_size, index_size);
 
     memory::memblk blk_vert = memory::allocate(alloc, section_size);
     memory::memblk blk_orig = memory::allocate(alloc, section_size);
@@ -227,14 +228,87 @@ void update_buffers(memory::allocator_t *allocator,
     vec2_t *glypth_data = cast<vec2_t *>(blk_glyph.ptr);
     uint32_t *idx_data = cast<uint32_t *>(blk_elem.ptr);
 
-    float_t pos_x = info.pos.x;
-    const float_t pos_y = info.pos.y;
+    float_t pos_x = 0;
+    float_t pos_y = 0;
+    vec2_t position{0.f, 0.f};
     const float_t scale = info.size;
 
     auto len1 = memory::address{orig_data} - memory::address{vert_data};
     auto len2 = memory::address{glypth_data} - memory::address{orig_data};
 
-    printf("buffer length (1): %lu, (2): %lu\n", len1, len2);
+    float_t max_width = 0;
+    float_t max_height = 0;
+
+    vec2_t max_bearing{0.f, 0.f};
+
+    for (uint32_t n = 0; n < info.length; n++) {
+      char c = info.text[n];
+      const character_t &ch = info.atlas->chars[c];
+      max_width += (ch.advance >> 6) * scale;
+      max_height = fmax(max_height, ch.size.y * scale);
+      max_bearing.x = fmax(max_bearing.x, ch.bearing.x * scale);
+      max_bearing.y = fmax(max_bearing.y, (ch.size.y - ch.bearing.y) * scale);
+    }
+
+    switch (info.location) {
+    case docking_location_e::TOP_LEFT: {
+      pos_x = info.offset.x + max_bearing.x;
+      pos_y = info.screen_size.y - (info.offset.y + max_bearing.y + max_height);
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::TOP_RIGHT: {
+      pos_x = info.screen_size.x - (info.offset.x + max_bearing.x + max_width);
+      pos_y = info.screen_size.y - (info.offset.y + max_bearing.y + max_height);
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::TOP_MIDDLE: {
+      pos_x =
+          (info.screen_size.x - (info.offset.x + max_bearing.x + max_width)) /
+          2.f;
+      pos_y = info.screen_size.y - (info.offset.y + max_bearing.y + max_height);
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::BOTTOM_LEFT: {
+      pos_x = info.offset.x + max_bearing.x;
+      pos_y = info.offset.y + max_bearing.y;
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::BOTTOM_RIGHT: {
+      pos_x = info.screen_size.x - (info.offset.x + max_bearing.x + max_width);
+      pos_y = info.offset.y + max_bearing.y;
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::BOTTOM_MIDDLE: {
+      pos_x =
+          (info.screen_size.x - (info.offset.x + max_bearing.x + max_width)) /
+          2.f;
+      pos_y = info.offset.y + max_bearing.y;
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::CENTRE: {
+      pos_x = info.screen_size.x / 2.f - max_width / 2.f;
+      pos_y = info.screen_size.y / 2.f - max_height / 2.f;
+      position = {pos_x, pos_y};
+      break;
+    }
+    case docking_location_e::ABSOLUTE: {
+      pos_x = info.offset.x;
+      pos_y = info.offset.y;
+      position = info.offset;
+      break;
+    }
+
+    default:
+      break;
+    }
+
+    // printf("buffer length (1): %lu, (2): %lu\n", len1, len2);
 
     for (uint32_t n = 0; n < info.length; n++) {
 
@@ -252,17 +326,12 @@ void update_buffers(memory::allocator_t *allocator,
       float_t h = ch.size.y * scale;
       float_t margin = 0.00002f;
 
-      printf("current char: %c, at %u\n", c, n);
+      // printf("current char: %c, at %u\n", c, n);
 
-      // vert_data[n1] = rotate(info.pos, {x, y + h}, info.rotation);
-      // vert_data[n2] = rotate(info.pos, {x, y}, info.rotation);
-      // vert_data[n3] = rotate(info.pos, {x + w, y}, info.rotation);
-      // vert_data[n4] = rotate(info.pos, {x + w, y + h}, info.rotation);
-
-      vert_data[n1] = {x, y + h};
-      vert_data[n2] = {x, y};
-      vert_data[n3] = {x + w, y};
-      vert_data[n4] = {x + w, y + h};
+      vert_data[n1] = rotate(position, {x, y + h}, info.rotation);
+      vert_data[n2] = rotate(position, {x, y}, info.rotation);
+      vert_data[n3] = rotate(position, {x + w, y}, info.rotation);
+      vert_data[n4] = rotate(position, {x + w, y + h}, info.rotation);
 
       orig_data[n1] = {float(c * 2) / 256.f, float(c)};
       orig_data[n2] = {float(c * 2) / 256.f, float(c)};
@@ -273,11 +342,6 @@ void update_buffers(memory::allocator_t *allocator,
       glypth_data[n2] = {ch.top_left.x + margin, ch.bottom_right.y};
       glypth_data[n3] = {ch.bottom_right.x - margin, ch.bottom_right.y};
       glypth_data[n4] = {ch.bottom_right.x - margin, ch.top_left.y};
-
-      // glypth_data[n1] = {0.f, 0.f};
-      // glypth_data[n2] = {0.f, 1.f};
-      // glypth_data[n3] = {1.f, 1.f};
-      // glypth_data[n4] = {1.f, 0.f};
 
       idx_data[n * 6 + 0] = n1;
       idx_data[n * 6 + 1] = n2;

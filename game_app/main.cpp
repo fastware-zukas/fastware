@@ -383,7 +383,9 @@ int main() {
             .atlas = &atlas,
             .text = tmpbuff,
             .length = cast<uint32_t>(fast_max(len, 0)),
-            .pos = vec2_t{float_t(20), float_t(info.height - 64)},
+            .location = docking_location_e::TOP_LEFT,
+            .screen_size = {float_t(info.width), float_t(info.height)},
+            .offset = vec2_t{0.f, 0.f},
             .size = 0.5f};
         text::update_buffers(alloc.root_alloc, &update_text_info, 1,
                              &text_entity.count);

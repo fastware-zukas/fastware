@@ -95,6 +95,17 @@ enum class parameter_type_e {
   DS_MODE
 };
 
+enum class docking_location_e {
+  TOP_LEFT,
+  TOP_RIGHT,
+  TOP_MIDDLE,
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT,
+  BOTTOM_MIDDLE,
+  CENTRE,
+  ABSOLUTE
+};
+
 struct shader_source_t {
   union {
     const char *glsl_source;
@@ -241,7 +252,9 @@ struct update_text_buffer_info_t {
   text_atlas_t *atlas{nullptr};
   const char *text{nullptr};
   uint32_t length{0};
-  vec2_t pos{0.f, 0.f};
+  docking_location_e location{docking_location_e::ABSOLUTE};
+  vec2_t screen_size{0.f, 0.f};
+  vec2_t offset{0.f, 0.f};
   float_t size{1.f};
   float_t rotation{0.f};
 };
