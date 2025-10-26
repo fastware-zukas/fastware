@@ -58,6 +58,21 @@ struct SystemAlloc {
   fastware::memory::allocator_t *root_alloc;
 };
 
+struct Test {
+  int val;
+};
+
+int test_func(lua_State *L) {
+  fastware::logger::log("Invoked from Lua");
+  if (lua_isuserdata(L, -1)) {
+    Test *t = static_cast<Test *>(lua_touserdata(L, -1));
+    fastware::logger::log("Value of t %d", t->val);
+    t->val = 13;
+  }
+
+  return 1;
+}
+
 int main() {
 
   using namespace fastware;
@@ -78,6 +93,28 @@ int main() {
   int error;
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
+
+  lua_pushcfunction(L, test_func);
+  lua_setglobal(L, "test_func");
+
+  Test t;
+  t.val = 11;
+
+  lua_pushlightuserdata(L, &t);
+  lua_setglobal(L, "context");
+
+  if (luaL_dofile(L, "scripts/start.lua")) {
+    logger::log("Final %s", lua_tostring(L, -1));
+  }
+
+  logger::log("Value of t after script %d", t.val);
+
+  lua_close(L);
+
+  logger::flush();
+  logger::deinit_logger();
+
+  return 0;
 
   setup::control_block control{.cam = camera{vec3_t{50.0f, 50.0f, 300.0f},
                                              vec3_t{0.0f, -0.45f, -1.0f},

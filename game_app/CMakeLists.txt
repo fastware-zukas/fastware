@@ -18,6 +18,10 @@ file(GLOB FONTS
     "fonts/*"
 )
 
+file(GLOB SCRIPTS
+    "fonts/*"
+)
+
 include_directories(.)
 include_directories(../)
 include_directories(../common/include)
@@ -63,6 +67,13 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/fonts
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/fonts
+)
+
+add_custom_command(
+    TARGET copy PRE_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/scripts
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scripts
 )
 
 
