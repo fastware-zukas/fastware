@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 
 project(game_app VERSION 0.1.0)
 
@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(
     ${PROJECT_NAME}
+    lua::lua
     common
     memory
     logger

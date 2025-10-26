@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 
 project(fastware VERSION 0.1.0)
 
@@ -43,6 +43,8 @@ add_definitions(-DGLFW_INCLUDE_GLU)
 add_definitions(-DGLFW_INCLUDE_GLU)
 add_definitions(-DGLEW_STATIC)
 add_definitions(-DSDL_STATIC)
+add_definitions(-DLUA_USE_POSIX)
+
 set(SDL_SHARED OFF CACHE BOOL "No SDL2 shared library" FORCE)
 set(SDL_STATIC ON CACHE BOOL "SDL2 static library" FORCE)
 
@@ -65,6 +67,7 @@ include_directories(3rd/googletest/googletest/include)
 include_directories(3rd/benchmark/include)
 include_directories(3rd/glew/include)
 include_directories(3rd/SDL2/include)
+include_directories(3rd/lua/include)
 include_directories(3rd/cglm/include)
 include_directories(3rd/freetype/include)
 
@@ -78,6 +81,7 @@ add_subdirectory(3rd/googletest)
 add_subdirectory(3rd/benchmark)
 add_subdirectory(3rd/glew/build/cmake)
 add_subdirectory(3rd/SDL2)
+add_subdirectory(3rd/lua)
 add_subdirectory(3rd/cglm)
 add_subdirectory(3rd/freetype)
 add_subdirectory(common)

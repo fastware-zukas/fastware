@@ -29,6 +29,10 @@
 #include <game_setup.h>
 #include <geometry.h>
 
+// Lua
+
+#include <lua.hpp>
+
 template <typename T> struct allocator {
   static T *alloc(fastware::memory::allocator_t *alloc) {
     return static_cast<T *>(fastware::memory::allocate(alloc, sizeof(T)).ptr);
@@ -69,6 +73,11 @@ int main() {
   SystemAlloc alloc;
 
   logger::init_logger(alloc.root_alloc, memory::Mb * 100);
+
+  char buff[256];
+  int error;
+  lua_State *L = luaL_newstate();
+  luaL_openlibs(L);
 
   setup::control_block control{.cam = camera{vec3_t{50.0f, 50.0f, 300.0f},
                                              vec3_t{0.0f, -0.45f, -1.0f},
@@ -445,6 +454,8 @@ int main() {
   varray::destroy(&vert_id, 1);
   buffer::destroy(buffers, 3);
   program::destroy(prog_id);
+
+  lua_close(L);
 
   logger::flush();
   logger::deinit_logger();
