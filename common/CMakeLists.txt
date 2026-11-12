@@ -4,6 +4,7 @@ project(common VERSION 0.1.0)
 
 file(GLOB SOURCES
     "src/*.cpp"
+    "src/*.ixx"
 )
 
 include_directories(./include)

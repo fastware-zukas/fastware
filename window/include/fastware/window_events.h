@@ -71,15 +71,15 @@ struct window_key_t {
   toggle_e repeat;
 };
 struct window_mouse_move_t {
-  int32_t x;
-  int32_t y;
-  int32_t relx;
-  int32_t rely;
+  float_t x;
+  float_t y;
+  float_t relx;
+  float_t rely;
   input::mouse_button_bits_e button;
 };
 struct window_mouse_wheel_t {
-  int32_t x;
-  int32_t y;
+  float_t x;
+  float_t y;
   input::mouse_wheel_direction_e direction;
 };
 struct window_mouse_button_t {
@@ -87,8 +87,8 @@ struct window_mouse_button_t {
   input::action_e action;
   input::mod_bits_e modifiers;
   input::mouse_click_count_e clicks;
-  int32_t x;
-  int32_t y;
+  float_t x;
+  float_t y;
 };
 struct window_text_edit_t {
   const char *text;

@@ -259,6 +259,14 @@ struct update_text_buffer_info_t {
   float_t rotation{0.f};
 };
 
+struct create_ui_box_info_t {
+  uint32_t texture_id{0};
+  uint32_t x{0};
+  uint32_t y{0};
+  uint32_t width{0};
+  uint32_t height{0};
+};
+
 } // namespace fastware
 
 #endif // DATA_TYPES_H

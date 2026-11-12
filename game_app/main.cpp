@@ -30,8 +30,12 @@
 #include <geometry.h>
 
 // Lua
-
 #include <lua.hpp>
+
+// GLTF
+#define CGLTF_IMPLEMENTATION
+#define CGLTF_WRITE_IMPLEMENTATION
+#include <cgltf.h>
 
 template <typename T> struct allocator {
   static T *alloc(fastware::memory::allocator_t *alloc) {
@@ -77,7 +81,7 @@ int main() {
 
   using namespace fastware;
 
-  constexpr uint32_t instance_count = 200000;
+  constexpr uint32_t instance_count = 150000;
   constexpr uint32_t units = 32;
   constexpr uint32_t vertex_count = geometry::sphere::vertex_count(units);
   constexpr uint32_t index_count = geometry::sphere::index_count(units);
@@ -88,6 +92,12 @@ int main() {
   SystemAlloc alloc;
 
   logger::init_logger(alloc.root_alloc, memory::Mb * 100);
+
+  cgltf_options options{.type = cgltf_file_type::cgltf_file_type_invalid};
+  cgltf_data *data = nullptr;
+  cgltf_parse_file(&options, "", &data);
+
+  // data->b
 
   char buff[256];
   int error;
@@ -108,13 +118,6 @@ int main() {
   }
 
   logger::log("Value of t after script %d", t.val);
-
-  lua_close(L);
-
-  logger::flush();
-  logger::deinit_logger();
-
-  return 0;
 
   setup::control_block control{.cam = camera{vec3_t{50.0f, 50.0f, 300.0f},
                                              vec3_t{0.0f, -0.45f, -1.0f},
@@ -153,6 +156,9 @@ int main() {
   sampler::create(&text_sampler_info, 1, &text_sampler_id);
 
   program::select(text_prog_id);
+
+  const uint32_t inColour = uniform::resolve_uniform(text_prog_id, "inColour");
+  uniform::set_value(text_prog_id, inColour, vec3_t{10, 210, 10});
 
   uint32_t text_texture_bind_location = 0;
   texture::bind(text_texture_bind_location, 1, &atlas.texture_id);
@@ -327,7 +333,7 @@ int main() {
 
   uniform::set_sampler_value(e.program_id, 11, texture_bind_location);
   uniform::set_value(e.program_id, 12, vec3_t{0, 0, 0});
-  uniform::set_value(e.program_id, 13, vec3_t{255, 255, 175});
+  uniform::set_value(e.program_id, 13, vec3_t{255, 200, 165});
   uniform::set_value(e.program_id, 14, 1200.f);
   uniform::set_value(e.program_id, 15, control.mode);
 
@@ -432,7 +438,7 @@ int main() {
             .location = docking_location_e::TOP_LEFT,
             .screen_size = {float_t(info.width), float_t(info.height)},
             .offset = vec2_t{0.f, 0.f},
-            .size = 0.5f};
+            .size = 0.2f};
         text::update_buffers(alloc.root_alloc, &update_text_info, 1,
                              &text_entity.count);
 

@@ -36,14 +36,14 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(
     ${PROJECT_NAME}
+    ${GL_LIBS}
     lua::lua
     common
     memory
     logger
     utils
     renderer
-    window
-    ${GL_LIBS}
+    window 
 )
 
 add_custom_target(copy)

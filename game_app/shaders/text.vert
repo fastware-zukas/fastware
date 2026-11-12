@@ -5,6 +5,7 @@ layout(location = 1) in vec2 vOrigin;
 layout(location = 2) in vec2 vUV;
 
 layout(location = 10) uniform mat4 uPV;
+layout(location = 14) uniform vec3 inColour;
 
 out gl_PerVertex {
   vec4 gl_Position;
@@ -21,7 +22,7 @@ Out;
 
 void main() {
   gl_Position = uPV * vec4(vPos, 0.0f, 1.0f);
-  Out.vColour = vec3(0.45,0.4, 0.65);
+  Out.vColour = normalize(inColour);
   Out.vOrigin = vOrigin;
   Out.vUV = vUV;
 }

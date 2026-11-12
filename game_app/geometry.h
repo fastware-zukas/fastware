@@ -22,6 +22,14 @@ void generate(vec3_t *positions, vec3_t *normals, vec2_t *uvs,
 
 } // namespace sphere
 
+namespace rect {
+
+void generate(vec3_t *positions, vec3_t *normals, vec2_t *uvs,
+              uint32_t *indexes, uint32_t width, uint32_t height,
+              uint32_t depth);
+
+} // namespace rect
+
 namespace matrix {
 
 void fill(mat4_t *matrixes, int32_t count, mat4_t value);

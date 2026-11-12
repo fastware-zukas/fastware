@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.10)
 project(cglm
   VERSION 0.9.4
   HOMEPAGE_URL https://github.com/recp/cglm
@@ -11,8 +11,8 @@ set(CMAKE_C_STANDARD_REQUIRED YES)
 set(DEFAULT_BUILD_TYPE "Release")
 
 set(CGLM_BUILD)
-option(CGLM_SHARED "Shared build" ON)
-option(CGLM_STATIC "Static build" OFF)
+option(CGLM_SHARED "Shared build" OFF)
+option(CGLM_STATIC "Static build" ON)
 option(CGLM_USE_C99 "" OFF)
 option(CGLM_USE_TEST "Enable Tests" OFF)
 

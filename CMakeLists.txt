@@ -1,5 +1,4 @@
-
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 4.2)
 
 project(fastware VERSION 0.1.0)
 
@@ -38,16 +37,11 @@ endif()
 add_compile_options(-msse4.2)
 
 add_definitions(-DHAVE_STD_ATOMIC)
-
+add_definitions(-DCMAKE_POSITION_INDEPENDENT_CODE=ON)
 add_definitions(-DGLFW_INCLUDE_GLU)
 add_definitions(-DGLFW_INCLUDE_GLU)
 add_definitions(-DGLEW_STATIC)
-add_definitions(-DSDL_STATIC)
 add_definitions(-DLUA_USE_POSIX)
-
-set(SDL_SHARED OFF CACHE BOOL "No SDL2 shared library" FORCE)
-set(SDL_STATIC ON CACHE BOOL "SDL2 static library" FORCE)
-
 
 add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
@@ -63,27 +57,32 @@ link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fno-omit-frame-pointer -std=c++23 -fno-rtti -fno-exceptions -Wl,--build-id")
 
+include_directories(3rd/SDL3/include)
 include_directories(3rd/googletest/googletest/include)
 include_directories(3rd/benchmark/include)
 include_directories(3rd/glew/include)
-include_directories(3rd/SDL2/include)
 include_directories(3rd/lua/include)
 include_directories(3rd/cglm/include)
+include_directories(3rd/cgltf)
 include_directories(3rd/freetype/include)
-
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 
 enable_testing()
 
+add_subdirectory(3rd/SDL3)
 add_subdirectory(3rd/googletest)
 add_subdirectory(3rd/benchmark)
 add_subdirectory(3rd/glew/build/cmake)
-add_subdirectory(3rd/SDL2)
 add_subdirectory(3rd/lua)
 add_subdirectory(3rd/cglm)
 add_subdirectory(3rd/freetype)
+
+
+SET(GL_LIBS ${OPENGL_LIBRARY} glew_s SDL3::SDL3 freetype)
+message("LIBRARIES: ${GL_LIBS}")
+
 add_subdirectory(common)
 add_subdirectory(memory)
 add_subdirectory(logger)
@@ -91,12 +90,4 @@ add_subdirectory(colliders)
 add_subdirectory(utils)
 add_subdirectory(renderer)
 add_subdirectory(window)
-
-
-SET(GL_LIBS ${OPENGL_LIBRARY} glew_s SDL2 freetype)
-
-message("LIBRARIES: ${GL_LIBS}")
-
 add_subdirectory(game_app)
-
-
