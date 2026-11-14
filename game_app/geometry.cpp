@@ -1,5 +1,7 @@
 #include "geometry.h"
 
+#include <cstdlib>
+#include <cstring>
 #include <fastware/maths.h>
 
 namespace fastware {
@@ -82,46 +84,75 @@ void generate(vec3_t *positions, vec3_t *normals, vec2_t *uvs,
               uint32_t *indexes, uint32_t width, uint32_t height,
               uint32_t depth) {
 
-  struct face_t {
-    vec3_t n, u, v;
+  float hx = width * 0.5f;
+  float hy = height * 0.5f;
+  float hz = depth * 0.5f;
+
+  vec3_t local_positions[]{// Front
+                           {-hx, -hy, hz},
+                           {hx, -hy, hz},
+                           {hx, hy, hz},
+                           {-hx, hy, hz},
+                           // Back
+                           {hx, -hy, -hz},
+                           {-hx, -hy, -hz},
+                           {-hx, hy, -hz},
+                           {hx, hy, -hz},
+                           // Left
+                           {-hx, -hy, -hz},
+                           {-hx, -hy, hz},
+                           {-hx, hy, hz},
+                           {-hx, hy, -hz},
+                           // Right
+                           {hx, -hy, hz},
+                           {hx, -hy, -hz},
+                           {hx, hy, -hz},
+                           {hx, hy, hz},
+                           // Top
+                           {-hx, hy, hz},
+                           {hx, hy, hz},
+                           {hx, hy, -hz},
+                           {-hx, hy, -hz},
+                           // Bottom
+                           {-hx, -hy, -hz},
+                           {hx, -hy, -hz},
+                           {hx, -hy, hz},
+                           {-hx, -hy, hz}};
+
+  memcpy(positions, local_positions, sizeof(local_positions));
+
+  vec3_t local_normals[]{
+      {0.0f, 0.0f, 1.0f},  {0.0f, 0.0f, 1.0f},  {0.0f, 0.0f, 1.0f},
+      {0.0f, 0.0f, 1.0f},  {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f},
+      {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {-1.0f, 0.0f, 0.0f},
+      {-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+      {1.0f, 0.0f, 0.0f},  {1.0f, 0.0f, 0.0f},  {1.0f, 0.0f, 0.0f},
+      {1.0f, 0.0f, 0.0f},  {0.0f, 1.0f, 0.0f},  {0.0f, 1.0f, 0.0f},
+      {0.0f, 1.0f, 0.0f},  {0.0f, 1.0f, 0.0f},  {0.0f, -1.0f, 0.0f},
+      {0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f},
   };
-  constexpr face_t faces[6] = {
-      {{0, 0, 1}, {1, 0, 0}, {0, 1, 0}},   // Front (+Z)
-      {{0, 0, -1}, {-1, 0, 0}, {0, 1, 0}}, // Back (-Z)
-      {{1, 0, 0}, {0, 0, -1}, {0, 1, 0}},  // Right (+X)
-      {{-1, 0, 0}, {0, 0, 1}, {0, 1, 0}},  // Left (-X)
-      {{0, 1, 0}, {1, 0, 0}, {0, 0, -1}},  // Top (+Y)
-      {{0, -1, 0}, {1, 0, 0}, {0, 0, 1}}   // Bottom (-Y)
+
+  memcpy(normals, local_normals, sizeof(local_normals));
+
+  vec2_t local_uvs[]{{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
+                     {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
+                     {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
+                     {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
+                     {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
+                     {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
+
+  memcpy(uvs, local_uvs, sizeof(local_uvs));
+
+  uint32_t local_indexes[]{
+      0,  1,  2,  2,  3,  0,  // Front
+      4,  5,  6,  6,  7,  4,  // Back
+      8,  9,  10, 10, 11, 8,  // Left
+      12, 13, 14, 14, 15, 12, // Right
+      16, 17, 18, 18, 19, 16, // Top
+      20, 21, 22, 22, 23, 20  // Bottom
   };
 
-  constexpr vec2_t quadUVs[4] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
-  constexpr vec2_t quadOffsets[4] = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
-  constexpr uint32_t idxOffsets[6]{0, 1, 2, 0, 2, 3};
-
-  const vec3_t half{width * 0.5f, height * 0.5f, depth * 0.5f};
-
-  for (uint32_t f = 0; f < 6; ++f) {
-
-    for (uint32_t i = 0; i < 4; ++i) {
-      const vec3_t u = glms_vec3_scale(faces[f].u, quadOffsets[i].x);
-      const vec3_t v = glms_vec3_scale(faces[f].v, quadOffsets[i].y);
-      const vec3_t uv = glms_vec3_add(u, v);
-      const vec3_t dir = glms_vec3_add(faces[f].n, uv);
-      const vec3_t pos = glms_vec3_mul(dir, half);
-      const uint32_t idx = f * 6 + i;
-
-      positions[idx] = pos;
-      normals[idx] = faces[f].n;
-      uvs[idx] = quadUVs[i];
-    }
-
-    const uint32_t baseOffset = f * 6;
-    const uint32_t baseIdx = f * 4;
-
-    for (uint32_t i = 0; i < 6; i++) {
-      indexes[baseOffset + i] = baseIdx + idxOffsets[i];
-    }
-  }
+  memcpy(indexes, local_indexes, sizeof(local_indexes));
 }
 
 } // namespace rect

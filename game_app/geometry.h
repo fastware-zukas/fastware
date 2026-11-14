@@ -24,6 +24,9 @@ void generate(vec3_t *positions, vec3_t *normals, vec2_t *uvs,
 
 namespace rect {
 
+constexpr uint32_t vertex_count() { return 24; }
+constexpr uint32_t index_count() { return 36; }
+
 void generate(vec3_t *positions, vec3_t *normals, vec2_t *uvs,
               uint32_t *indexes, uint32_t width, uint32_t height,
               uint32_t depth);

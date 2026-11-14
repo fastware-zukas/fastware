@@ -81,10 +81,10 @@ int main() {
 
   using namespace fastware;
 
-  constexpr uint32_t instance_count = 150000;
+  constexpr uint32_t instance_count = 5000;
   constexpr uint32_t units = 32;
-  constexpr uint32_t vertex_count = geometry::sphere::vertex_count(units);
-  constexpr uint32_t index_count = geometry::sphere::index_count(units);
+  constexpr uint32_t vertex_count = geometry::rect::vertex_count();
+  constexpr uint32_t index_count = geometry::rect::index_count();
 
   constexpr uint64_t vc = uint64_t(instance_count) * uint64_t(vertex_count);
   constexpr uint64_t tc = uint64_t(instance_count) * uint64_t(index_count) / 3;
@@ -211,8 +211,8 @@ int main() {
   index_data *idx_data = allocator<index_data>::alloc(alloc.root_alloc);
   gpu_matrixes *gpu_mat_data = allocator<gpu_matrixes>::alloc(alloc.root_alloc);
 
-  geometry::sphere::generate(vert_data->positions, vert_data->normals,
-                             vert_data->uvs, idx_data->indexes, units);
+  geometry::rect::generate(vert_data->positions, vert_data->normals,
+                           vert_data->uvs, idx_data->indexes, 3, 3, 1);
 
   const buffer_create_info_t buffer_infos[]{
       {.target = buffer_target_e::ARRAY_BUFFER,
@@ -315,7 +315,7 @@ int main() {
                         .render_type = entity::INDEX_INSTANCED}};
 
   uint32_t texture_id =
-      setup::create_texture(alloc.root_alloc, "textures/earth.jpg");
+      setup::create_texture(alloc.root_alloc, "textures/rocky_terrain.jpg");
 
   param_info_t param_infos[2]{
       {parameter_type_e::WRAP_S, wrap_e::CLAMP_TO_EDGE},
@@ -334,7 +334,7 @@ int main() {
   uniform::set_sampler_value(e.program_id, 11, texture_bind_location);
   uniform::set_value(e.program_id, 12, vec3_t{0, 0, 0});
   uniform::set_value(e.program_id, 13, vec3_t{255, 200, 165});
-  uniform::set_value(e.program_id, 14, 1200.f);
+  uniform::set_value(e.program_id, 14, 2000.f);
   uniform::set_value(e.program_id, 15, control.mode);
 
   clock::init();
@@ -347,7 +347,7 @@ int main() {
       .view = camera_view(control.cam),
       .projection = glms_perspective(glm_rad(60.f),
                                      float(info.width) / float(info.height),
-                                     0.01f, 2000.0f)};
+                                     0.01f, 10000.0f)};
 
   uint64_t frames_dur = 1000000000 - 1;
   uint64_t frame_idx = 29;

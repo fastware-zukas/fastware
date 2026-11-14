@@ -17,7 +17,7 @@ layout(location = 0, index = 0) out vec4 fColour;
 
 void main(void) {
 
-  float ambientStrength = 0.05;
+  float ambientStrength = 0.15;
   vec3 ambient = ambientStrength * normalize(lightColour);
 
   vec3 norm = normalize(In.vNorm);
@@ -27,7 +27,7 @@ void main(void) {
 
   float dist = length(lightPosition - In.vFragPos);
 
-  vec3 result =
+  vec3 result = 
       ambient + diffuse * lightColour * lightIntensity / (dist * dist);
 
   if (mode <= 0) {

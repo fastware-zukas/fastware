@@ -290,7 +290,7 @@ void create_transforms(mat4_t *matrixes, int32_t count) {
   std::random_device
       rd; // Will be used to obtain a seed for the random number engine
   std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
-  std::uniform_real_distribution<float> dis(-4000.f, 4000.f);
+  std::uniform_real_distribution<float> dis(-2000.f, 2000.f);
   std::uniform_real_distribution<float> dis2(3.f, 15.f);
 
   for (int32_t i = 0; i < count; ++i) {
