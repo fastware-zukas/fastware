@@ -81,7 +81,7 @@ int main() {
 
   using namespace fastware;
 
-  constexpr uint32_t instance_count = 5000;
+  constexpr uint32_t instance_count = 15006;
   constexpr uint32_t units = 32;
   constexpr uint32_t vertex_count = geometry::rect::vertex_count();
   constexpr uint32_t index_count = geometry::rect::index_count();
@@ -212,7 +212,7 @@ int main() {
   gpu_matrixes *gpu_mat_data = allocator<gpu_matrixes>::alloc(alloc.root_alloc);
 
   geometry::rect::generate(vert_data->positions, vert_data->normals,
-                           vert_data->uvs, idx_data->indexes, 3, 3, 1);
+                           vert_data->uvs, idx_data->indexes, 3, 1, 3);
 
   const buffer_create_info_t buffer_infos[]{
       {.target = buffer_target_e::ARRAY_BUFFER,
@@ -268,8 +268,9 @@ int main() {
 
   geometry::matrix::fill(prep_mat_data->animations, instance_count,
                          glms_mat4_identity());
-  setup::create_transforms(prep_mat_data->models, instance_count);
-  setup::create_speeds(prep_mat_data->speeds, instance_count);
+  setup::create_tiles(prep_mat_data->models, instance_count, 3, 3);
+  memset(prep_mat_data->speeds, 0, sizeof(prep_mat_data->speeds));
+  // setup::create_speeds(prep_mat_data->speeds, instance_count);
 
   setup::shader_source bounding_shaders[]{
       {.filename = "shaders/bounding_box.vert", .type = shader_type_e::VERTEX},
@@ -332,9 +333,9 @@ int main() {
   sampler::bind(texture_bind_location, 1, &sampler_id);
 
   uniform::set_sampler_value(e.program_id, 11, texture_bind_location);
-  uniform::set_value(e.program_id, 12, vec3_t{0, 0, 0});
+  uniform::set_value(e.program_id, 12, vec3_t{3000, 3000, -1000});
   uniform::set_value(e.program_id, 13, vec3_t{255, 200, 165});
-  uniform::set_value(e.program_id, 14, 2000.f);
+  uniform::set_value(e.program_id, 14, 120000.f);
   uniform::set_value(e.program_id, 15, control.mode);
 
   clock::init();
@@ -367,8 +368,9 @@ int main() {
 
     {
       METRIC(PrepModels);
-      setup::update_transforms(prep_mat_data->animations, prep_mat_data->speeds,
-                               instance_count);
+      // setup::update_transforms(prep_mat_data->animations,
+      // prep_mat_data->speeds,
+      //                          instance_count);
 
       setup::compute_gpu_matrixes(
           gpu_mat_data->model_transforms, gpu_mat_data->normal_transforms,

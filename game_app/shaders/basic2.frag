@@ -17,17 +17,17 @@ layout(location = 0, index = 0) out vec4 fColour;
 
 void main(void) {
 
-  float ambientStrength = 0.15;
+  float ambientStrength = 0.25;
   vec3 ambient = ambientStrength * normalize(lightColour);
 
   vec3 norm = normalize(In.vNorm);
   vec3 lightDir = normalize(lightPosition - In.vFragPos);
   float diff = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = diff * texture(textureSampler, In.vUV).rgb;
-
+  vec3 dir = norm * diff;
+  vec3 diffuse = texture(textureSampler, In.vUV).rgb;
   float dist = length(lightPosition - In.vFragPos);
 
-  vec3 result = 
+  vec3 result =
       ambient + diffuse * lightColour * lightIntensity / (dist * dist);
 
   if (mode <= 0) {

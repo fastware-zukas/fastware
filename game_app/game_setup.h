@@ -50,6 +50,9 @@ void create_speeds(float *speeds, int32_t count);
 
 void update_transforms(mat4_t *transforms, float *speeds, int32_t count);
 
+void create_tiles(mat4_t *matrixes, int32_t count, uint32_t width,
+                  uint32_t height);
+
 void compute_model_matrixes(mat4_t *model_transforms, mat4_t *models,
                             mat4_t *animations, int32_t count);
 

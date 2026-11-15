@@ -307,6 +307,41 @@ void create_transforms(mat4_t *matrixes, int32_t count) {
   }
 }
 
+void create_tiles(mat4_t *matrixes, int32_t count, uint32_t width,
+                  uint32_t height) {
+
+  float_t x = 0;
+  float_t y = 0;
+  int32_t incx = 1;
+  int32_t incy = 1;
+  int32_t signx = 1;
+  int32_t signy = 1;
+  int32_t dir = 0;
+  int32_t i = 1;
+
+  matrixes[0] = glms_translate(glms_mat4_identity(), vec3_t{x, 0, y});
+
+  while (i < count) {
+    if (dir == 0) {
+      for (int32_t n = 0; n < incx && i < count; n++, i++) {
+        x += float_t(width) * signx;
+        matrixes[i] = glms_translate(glms_mat4_identity(), vec3_t{x, 0, y});
+      }
+      incx++;
+      signx *= -1;
+      dir++;
+    } else {
+      for (int32_t m = 0; m < incy && i < count; m++, i++) {
+        y += float_t(height) * signy;
+        matrixes[i] = glms_translate(glms_mat4_identity(), vec3_t{x, 0, y});
+      }
+      incy++;
+      signy *= -1;
+      dir--;
+    }
+  }
+}
+
 void create_speeds(float *speeds, int32_t count) {
 
   std::random_device
